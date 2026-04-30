@@ -1,7 +1,9 @@
 {
   "version": 2,
+  "builds": [
+    { "src": "**/*", "use": "@vercel/static" }
+  ],
   "routes": [
-    { "src": "/", "dest": "/portfolio.html" },
     { "src": "/login", "dest": "/login/index.html" },
     { "src": "/cms", "dest": "/cms/index.html" },
     { "src": "/(.*)", "dest": "/$1" }

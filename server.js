@@ -31,22 +31,20 @@ const server = http.createServer((req, res) => {
   // Resolve the file path
   let filePath = path.join(ROOT, urlPath);
 
-  // Directory → look for index.html, then fall back to portfolio.html at root
+  // Directory → look for index.html
   if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
     const indexHtml = path.join(filePath, 'index.html');
     if (fs.existsSync(indexHtml)) {
       filePath = indexHtml;
-    } else if (urlPath === '/') {
-      filePath = path.join(ROOT, 'portfolio.html');
     } else {
       send404(res);
       return;
     }
   }
 
-  // Root with no path → portfolio.html
+  // Root → index.html
   if (urlPath === '/') {
-    filePath = path.join(ROOT, 'portfolio.html');
+    filePath = path.join(ROOT, 'index.html');
   }
 
   fs.readFile(filePath, (err, data) => {
@@ -68,7 +66,7 @@ function send404(res) {
 
 server.listen(PORT, () => {
   console.log(`Portfolio running at http://localhost:${PORT}`);
-  console.log(`  /           → portfolio.html`);
+  console.log(`  /           → index.html`);
   console.log(`  /login      → login/index.html`);
   console.log(`  /cms        → cms/index.html`);
   console.log('\nPress Ctrl+C to stop.');
