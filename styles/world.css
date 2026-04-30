@@ -1,0 +1,1713 @@
+/* === Tokens === */
+:root {
+  --bg: #060508;
+  --bg-2: #0c0a0e;
+  --fg: #c8c0b4;
+  --fg-dim: #706a60;
+  --fg-mute: #3a3630;
+  --line: #161416;
+  --accent: #8a1520;
+  --accent-2: #9a8a6a;
+
+  /* biome accents — dark noir comic */
+  --comic-yellow: #8a7a5a;
+  --comic-red: #4a0a10;
+  --comic-blue: #10141a;
+  --comic-pink: #2a0c14;
+  --comic-bone: #a09080;
+  --comic-ink: #060508;
+
+  --rdr-paper: #c4a878;
+  --rdr-ink: #2a1d10;
+  --rdr-sepia: #9a7848;
+  --rdr-fire: #9a5a2a;
+
+  --gow-blue: #3a6a8a;
+  --gow-rune: #8a7a5a;
+  --gow-stone: #0e0e10;
+  --gow-frost: #8aa0b4;
+
+  --witcher-paper: #b4a070;
+  --witcher-ink: #2a1f10;
+  --witcher-blood: #5a1818;
+  --witcher-gold: #8a7a5a;
+
+  --sm-red: #8a1520;
+  --sm-blue: #1a2840;
+  --sm-yellow: #a89a70;
+
+  --ember: #a0603a;
+  --ember-bone: #c8c0b4;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Inter', sans-serif;
+  overflow-x: hidden;
+}
+::selection { background: var(--accent); color: var(--bg); }
+
+img { max-width: 100%; }
+
+/* Custom cursor */
+.cursor {
+  position: fixed;
+  width: 10px; height: 10px;
+  background: var(--accent);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  mix-blend-mode: difference;
+  transform: translate(-50%, -50%);
+  transition: width .2s, height .2s, background .2s;
+}
+.cursor.hover { width: 44px; height: 44px; background: transparent; border: 1px solid var(--accent); }
+@media (max-width: 900px) { .cursor { display: none; } }
+
+/* Grain + scanlines (always on) */
+.grain {
+  position: fixed; inset: 0; pointer-events: none; opacity: .07; z-index: 1;
+  background-image: url("data:image/svg+xml;utf8,<svg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3'/></filter><rect width='100%' height='100%' filter='url(%23n)' opacity='.6'/></svg>");
+}
+.scanlines {
+  position: fixed; inset: 0; pointer-events: none; z-index: 2;
+  background: repeating-linear-gradient(to bottom, transparent 0, transparent 3px, rgba(255,255,255,.012) 3px, rgba(255,255,255,.012) 4px);
+}
+
+/* === Boot screen === */
+.boot {
+  position: fixed; inset: 0; z-index: 9000;
+  background: #000;
+  display: grid;
+  place-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  color: #f4f0e8;
+  overflow: hidden;
+}
+.boot-crt {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,.9) 100%);
+  pointer-events: none;
+}
+.boot-flicker { animation: flicker 4s infinite; }
+@keyframes flicker {
+  0%, 92%, 100% { opacity: 1; }
+  93% { opacity: .4; }
+  94% { opacity: 1; }
+  95% { opacity: .7; }
+  96% { opacity: 1; }
+}
+.boot-content {
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  padding: 40px;
+}
+.boot-meta {
+  font-size: 11px;
+  letter-spacing: .25em;
+  color: var(--accent);
+  margin-bottom: 32px;
+  text-transform: uppercase;
+}
+.boot-title {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(60px, 11vw, 180px);
+  line-height: .9;
+  letter-spacing: -.02em;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.boot-title .italic { font-style: italic; color: var(--accent); }
+.boot-sub {
+  font-size: 13px;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  margin-bottom: 60px;
+}
+.boot-press {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 14px;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  padding: 18px 32px;
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  animation: press-pulse 1.6s infinite;
+}
+.boot-press:hover { background: var(--accent); color: #000; animation: none; }
+@keyframes press-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(138,21,32,.6); }
+  50% { box-shadow: 0 0 0 12px rgba(138,21,32,0); }
+}
+.boot-controls {
+  display: flex;
+  gap: 24px;
+  justify-content: center;
+  margin-top: 60px;
+  font-size: 10px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--fg-mute);
+}
+.boot-controls kbd {
+  display: inline-block;
+  padding: 4px 8px;
+  border: 1px solid var(--fg-mute);
+  border-radius: 3px;
+  margin-right: 6px;
+  font-family: inherit;
+}
+.boot-loading {
+  margin-top: 40px;
+  height: 2px;
+  width: 240px;
+  background: rgba(255,255,255,.1);
+  margin-left: auto;
+  margin-right: auto;
+  position: relative;
+  overflow: hidden;
+}
+.boot-loading::after {
+  content: '';
+  position: absolute;
+  height: 100%;
+  width: 30%;
+  background: var(--accent);
+  animation: loading 1.8s infinite;
+}
+@keyframes loading {
+  0% { left: -30%; }
+  100% { left: 100%; }
+}
+.boot.fade-out { animation: bootFade .8s forwards ease-out; }
+@keyframes bootFade {
+  to { opacity: 0; transform: scale(1.05); pointer-events: none; }
+}
+
+/* === HUD === */
+.hud {
+  position: fixed;
+  top: 16px; left: 16px;
+  z-index: 800;
+  font-family: 'JetBrains Mono', monospace;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  pointer-events: none;
+}
+.hud > * { pointer-events: auto; }
+.hud-block {
+  background: rgba(0,0,0,.7);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,.1);
+  padding: 8px 12px;
+  font-size: 11px;
+  letter-spacing: .12em;
+  color: var(--fg);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.hud-biome {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.hud-biome::before {
+  content: '◈';
+  margin-right: 4px;
+}
+.hud-level {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  min-width: 220px;
+}
+.hud-level .row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 10px;
+}
+.hud-level .lvl { color: var(--accent); font-weight: 700; font-size: 12px; }
+.hud-bar {
+  height: 4px;
+  background: rgba(255,255,255,.08);
+  position: relative;
+  overflow: hidden;
+}
+.hud-bar-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transform-origin: left;
+  transition: transform .5s cubic-bezier(.7,0,.2,1);
+}
+
+.hud-right {
+  position: fixed;
+  top: 16px; right: 16px;
+  z-index: 800;
+  font-family: 'JetBrains Mono', monospace;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: flex-end;
+  pointer-events: none;
+}
+.hud-right > * { pointer-events: auto; }
+.hud-quest-btn {
+  background: rgba(0,0,0,.7);
+  border: 1px solid rgba(255,255,255,.15);
+  color: var(--fg);
+  font-family: inherit;
+  font-size: 11px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: all .2s;
+}
+.hud-quest-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* Mini-map */
+.minimap {
+  position: fixed;
+  bottom: 16px; right: 16px;
+  z-index: 800;
+  width: 150px;
+  background: rgba(0,0,0,.75);
+  border: 1px solid rgba(255,255,255,.15);
+  padding: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .15em;
+  color: var(--fg-dim);
+}
+.minimap-title {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.minimap-title .pct { color: var(--accent); }
+.minimap-track {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.minimap-node {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  font-size: 9px;
+  background: rgba(255,255,255,.03);
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  transition: all .2s;
+  text-decoration: none;
+  color: inherit;
+}
+.minimap-node:hover { background: rgba(255,255,255,.06); }
+.minimap-node.active {
+  border-left-color: var(--accent);
+  color: var(--accent);
+  background: rgba(255,91,31,.08);
+}
+.minimap-node .dot { color: var(--fg-mute); }
+.minimap-node.active .dot { color: var(--accent); }
+
+/* === Biome transitions — TLoU chapter card, Witcher ink === */
+.transition {
+  position: fixed; inset: 0;
+  z-index: 900;
+  pointer-events: none;
+}
+
+/* TLoU fade with chapter card */
+.tx-tlou {
+  background: #000;
+  opacity: 0;
+  display: grid;
+  place-items: center;
+}
+.tx-tlou.go { animation: tlouIn 1.4s forwards; }
+.tx-tlou.exit { animation: tlouOut .6s forwards; }
+@keyframes tlouIn {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { opacity: 1; }
+}
+@keyframes tlouOut { to { opacity: 0; } }
+.tx-tlou .chapter {
+  text-align: center;
+  color: #f4f0e8;
+  font-family: 'Instrument Serif', serif;
+  opacity: 0;
+}
+.tx-tlou.go .chapter { animation: chapterIn 1.2s .2s forwards; }
+@keyframes chapterIn {
+  0% { opacity: 0; transform: translateY(20px); }
+  20% { opacity: 1; transform: translateY(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.tx-tlou .chapter-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: .4em;
+  color: #888;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+.tx-tlou .chapter-name {
+  font-size: clamp(40px, 6vw, 88px);
+  font-style: italic;
+  letter-spacing: -.02em;
+}
+.tx-tlou .chapter-rule {
+  width: 80px;
+  height: 1px;
+  background: #888;
+  margin: 24px auto;
+}
+.tx-tlou .chapter-loc {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .3em;
+  color: #aaa;
+  text-transform: uppercase;
+}
+
+/* Witcher ink dissolve */
+.tx-witcher {
+  background: var(--witcher-paper);
+  opacity: 0;
+  display: grid;
+  place-items: center;
+}
+.tx-witcher.go { animation: witcherIn 1.4s forwards; }
+.tx-witcher.exit { animation: witcherOut .6s forwards; }
+@keyframes witcherIn {
+  0% { opacity: 0; }
+  25% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 1; }
+}
+@keyframes witcherOut { to { opacity: 0; } }
+.tx-witcher .ink {
+  text-align: center;
+  font-family: 'Instrument Serif', serif;
+  color: var(--witcher-ink);
+  opacity: 0;
+}
+.tx-witcher.go .ink { animation: inkIn 1.2s .2s forwards; }
+@keyframes inkIn {
+  0% { opacity: 0; filter: blur(8px); }
+  30% { opacity: 1; filter: blur(0); }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+.tx-witcher .ink-eye {
+  font-size: 36px;
+  margin-bottom: 12px;
+  color: var(--witcher-blood);
+}
+.tx-witcher .ink-title {
+  font-size: clamp(36px, 5vw, 72px);
+  font-style: italic;
+  letter-spacing: .02em;
+}
+.tx-witcher .ink-sub {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .3em;
+  color: var(--witcher-ink);
+  margin-top: 12px;
+  text-transform: uppercase;
+  opacity: .7;
+}
+
+/* === Section: Spider-Verse Hero === */
+.world-hero {
+  min-height: 100vh;
+  position: relative;
+  background: #080608;
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(138,21,32,.2) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 100%, rgba(16,20,26,.5) 0%, transparent 50%),
+    radial-gradient(circle, rgba(160,144,128,.04) 1px, transparent 1.5px);
+  background-size: auto, auto, 6px 6px;
+  color: var(--comic-bone);
+  overflow: hidden;
+  padding: 100px 40px 60px;
+}
+.comic-burst {
+  position: absolute;
+  font-family: 'Bangers', 'Impact', sans-serif;
+  color: var(--comic-yellow);
+  text-shadow: 4px 4px 0 var(--comic-red);
+  font-size: 80px;
+  letter-spacing: -.02em;
+  pointer-events: none;
+  transform: rotate(-8deg);
+  opacity: .55;
+}
+.hero-comic-grid {
+  max-width: 1500px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  grid-template-rows: auto auto;
+  gap: 16px;
+  position: relative;
+  z-index: 2;
+}
+.comic-panel {
+  background: #100e12;
+  border: 1px solid rgba(160,144,128,.2);
+  box-shadow: 4px 4px 0 var(--comic-red);
+  color: var(--comic-bone);
+  padding: 24px;
+  position: relative;
+  transition: transform .3s cubic-bezier(.7,0,.2,1);
+}
+.comic-panel:hover { transform: translate(-4px, -4px); box-shadow: 12px 12px 0 #000; }
+.comic-panel.tilt-l { transform: rotate(-1.5deg); }
+.comic-panel.tilt-r { transform: rotate(1.5deg); }
+.comic-panel.tilt-l:hover { transform: rotate(-1.5deg) translate(-4px, -4px); }
+.comic-panel.tilt-r:hover { transform: rotate(1.5deg) translate(-4px, -4px); }
+.comic-name {
+  font-family: 'Bangers', 'Impact', sans-serif;
+  font-size: clamp(70px, 12vw, 180px);
+  line-height: .85;
+  letter-spacing: -.01em;
+  color: var(--comic-bone);
+  text-shadow: 6px 6px 0 var(--comic-red);
+  text-transform: uppercase;
+}
+.comic-name span { color: var(--comic-yellow); }
+.comic-caption {
+  background: var(--comic-bone);
+  border: 1px solid var(--comic-ink);
+  display: inline-block;
+  padding: 4px 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  color: var(--comic-ink);
+  position: absolute;
+  top: -12px;
+  left: 16px;
+}
+.comic-thought {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 22px;
+  line-height: 1.3;
+}
+.comic-thought b { font-style: normal; background: rgba(138,21,32,.25); padding: 1px 6px; color: var(--comic-bone); border-bottom: 1px solid var(--accent); }
+.comic-stat {
+  font-family: 'Bangers', sans-serif;
+  font-size: 56px;
+  line-height: 1;
+  color: var(--comic-yellow);
+}
+.comic-stat-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  color: var(--comic-bone);
+  opacity: .7;
+  margin-bottom: 4px;
+}
+.comic-vs {
+  font-family: 'Bangers', sans-serif;
+  font-size: 28px;
+}
+.halftone-dots {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(circle, var(--comic-bone) 1px, transparent 1.5px);
+  background-size: 6px 6px;
+  opacity: .06;
+  pointer-events: none;
+}
+
+.speech {
+  position: absolute;
+  background: var(--comic-bone);
+  border: 2px solid var(--comic-ink);
+  border-radius: 50%;
+  padding: 14px 18px;
+  font-family: 'Bangers', 'Impact', sans-serif;
+  font-size: 15px;
+  letter-spacing: .04em;
+  color: var(--comic-ink);
+  z-index: 5;
+}
+.speech::after {
+  content: '';
+  position: absolute;
+  bottom: -14px; left: 30px;
+  width: 0; height: 0;
+  border: 10px solid transparent;
+  border-top-color: var(--comic-ink);
+}
+.speech::before {
+  content: '';
+  position: absolute;
+  bottom: -10px; left: 32px;
+  width: 0; height: 0;
+  border: 8px solid transparent;
+  border-top-color: var(--comic-bone);
+  z-index: 1;
+}
+
+/* Hero CTA buttons */
+.hero-cta {
+  display: block;
+  padding: 16px 24px;
+  font-family: 'Bangers', 'Impact', sans-serif;
+  font-size: 20px;
+  letter-spacing: .15em;
+  text-decoration: none;
+  text-transform: uppercase;
+  border: 2px solid;
+  transition: all .2s;
+  text-align: center;
+}
+.hero-cta-primary {
+  background: var(--accent);
+  color: var(--comic-ink);
+  border-color: var(--accent);
+  box-shadow: 4px 4px 0 var(--comic-red);
+}
+.hero-cta-primary:hover {
+  background: transparent;
+  color: var(--accent);
+  box-shadow: 6px 6px 0 var(--comic-red);
+  transform: translate(-2px, -2px);
+}
+.hero-cta-bone {
+  background: var(--comic-bone);
+  color: var(--comic-ink);
+  border-color: var(--comic-bone);
+  box-shadow: 4px 4px 0 rgba(0,0,0,.4);
+}
+.hero-cta-bone:hover {
+  background: transparent;
+  color: var(--comic-bone);
+  transform: translate(-2px, -2px);
+}
+.hero-cta-ghost {
+  background: transparent;
+  color: var(--comic-bone);
+  border-color: rgba(221,209,189,.3);
+}
+.hero-cta-ghost:hover {
+  border-color: var(--comic-bone);
+  background: rgba(221,209,189,.06);
+}
+
+/* === RDR2 About === */
+.world-about {
+  background: #1a1612;
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(255,122,42,.18) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(255,122,42,.1) 0%, transparent 50%);
+  color: var(--rdr-paper);
+  padding: 120px 40px;
+  position: relative;
+}
+.world-about::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'><filter id='r'><feTurbulence type='turbulence' baseFrequency='0.5' numOctaves='3'/><feColorMatrix values='0 0 0 0 .8  0 0 0 0 .6  0 0 0 0 .3  0 0 0 .2 0'/></filter><rect width='100%' height='100%' filter='url(%23r)'/></svg>");
+  opacity: .3;
+  pointer-events: none;
+}
+.about-container {
+  max-width: 1300px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+.about-header {
+  font-family: 'Instrument Serif', serif;
+  text-align: center;
+  margin-bottom: 60px;
+}
+.about-chapter {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .4em;
+  color: var(--rdr-fire);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.about-chapter::before, .about-chapter::after {
+  content: '— —';
+  margin: 0 12px;
+  opacity: .5;
+}
+.about-title {
+  font-size: clamp(40px, 6vw, 84px);
+  font-style: italic;
+  color: var(--rdr-paper);
+  letter-spacing: -.01em;
+}
+
+/* D&D Character Sheet */
+.dnd-sheet {
+  background: linear-gradient(180deg, #f0e0c2, #d9c39a);
+  color: var(--rdr-ink);
+  padding: 40px;
+  font-family: 'Special Elite', 'Courier New', monospace;
+  position: relative;
+  box-shadow: 0 40px 100px rgba(0,0,0,.7), inset 0 0 80px rgba(120,80,30,.15);
+  border: 1px solid #b59d6f;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.dnd-sheet::before {
+  content: '';
+  position: absolute;
+  top: 0; bottom: 0; left: 56px;
+  width: 1px;
+  background: rgba(180,30,30,.22);
+  pointer-events: none;
+}
+.dnd-sheet::after {
+  content: '';
+  position: absolute;
+  inset: 14px;
+  border: 1px dashed rgba(120,80,30,.18);
+  pointer-events: none;
+}
+
+/* Top row — portrait + identity */
+.dnd-top {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  gap: 32px;
+  margin-bottom: 32px;
+  align-items: start;
+}
+.dnd-portrait {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+.dnd-portrait-frame {
+  width: 190px; height: 240px;
+  border: 3px solid var(--rdr-ink);
+  box-shadow: 4px 4px 0 rgba(60,30,15,.4), inset 0 0 20px rgba(120,80,30,.2);
+  overflow: hidden;
+  position: relative;
+}
+.dnd-portrait-img {
+  width: 100%; height: 100%;
+  background: #c8ad8a;
+  display: grid;
+  place-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: rgba(60,30,15,.6);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.dnd-portrait-img img { width: 100%; height: 100%; object-fit: cover; }
+.dnd-portrait-cap {
+  font-family: 'Caveat', cursive;
+  font-size: 14px;
+  color: rgba(60,30,15,.6);
+  text-align: center;
+}
+
+/* Identity grid */
+.dnd-identity { display: flex; flex-direction: column; gap: 20px; }
+.dnd-id-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0;
+  border: 2px solid var(--rdr-ink);
+}
+.dnd-field {
+  padding: 10px 12px;
+  border-right: 1px solid rgba(60,30,15,.3);
+  border-bottom: 1px solid rgba(60,30,15,.3);
+}
+.dnd-field:nth-child(3n) { border-right: none; }
+.dnd-field:nth-last-child(-n+3) { border-bottom: none; }
+.dnd-field.big {
+  grid-column: 1 / -1;
+  border-right: none;
+}
+.dnd-field-label {
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  color: rgba(60,30,15,.55);
+  margin-bottom: 4px;
+}
+.dnd-field-value {
+  font-family: 'Instrument Serif', serif;
+  font-size: 17px;
+  font-style: italic;
+  color: var(--rdr-ink);
+}
+.dnd-field.big .dnd-field-value {
+  font-size: 26px;
+  font-style: normal;
+  font-family: 'Cinzel', serif;
+  letter-spacing: .05em;
+}
+
+/* Personality flavor */
+.dnd-flavor {
+  padding: 16px;
+  border: 1px solid rgba(60,30,15,.25);
+  background: rgba(120,80,30,.06);
+}
+.dnd-flavor-label {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: .25em;
+  color: rgba(60,30,15,.55);
+  margin-bottom: 10px;
+}
+.dnd-flavor p {
+  font-size: 13px;
+  line-height: 1.7;
+  margin-bottom: 8px;
+  color: var(--rdr-ink);
+}
+.dnd-flavor p:last-child { margin-bottom: 0; }
+.dnd-flavor em { font-style: italic; }
+
+/* Ability scores */
+.dnd-abilities {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0;
+  border: 2px solid var(--rdr-ink);
+  margin-bottom: 28px;
+}
+.dnd-ability {
+  padding: 16px 10px;
+  text-align: center;
+  border-right: 1px solid rgba(60,30,15,.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.dnd-ability:last-child { border-right: none; }
+.dnd-ability-mod {
+  font-family: 'Cinzel', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--rdr-ink);
+  background: rgba(180,30,30,.12);
+  border: 2px solid var(--rdr-ink);
+  width: 52px; height: 52px;
+  display: grid;
+  place-items: center;
+  border-radius: 2px;
+}
+.dnd-ability-score {
+  font-family: 'Special Elite', monospace;
+  font-size: 28px;
+  color: var(--rdr-ink);
+  font-weight: 700;
+}
+.dnd-ability-name {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 8px;
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  color: rgba(60,30,15,.6);
+}
+.dnd-ability-note {
+  font-size: 9px;
+  color: rgba(60,30,15,.7);
+  line-height: 1.3;
+  margin-top: 4px;
+  font-style: italic;
+}
+
+/* Mid section — proficiencies + equipment */
+.dnd-mid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
+}
+.dnd-block {
+  border: 1px solid rgba(60,30,15,.3);
+  padding: 16px;
+}
+.dnd-block-title {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  color: var(--rdr-ink);
+  border-bottom: 1px solid rgba(60,30,15,.25);
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+}
+.dnd-prof-row {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+  align-items: start;
+}
+.dnd-prof-group {
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: .2em;
+  color: rgba(60,30,15,.55);
+  padding-top: 2px;
+}
+.dnd-prof-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--rdr-ink);
+  line-height: 1.5;
+}
+.dnd-prof-items span { white-space: nowrap; }
+.dnd-equip {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--rdr-ink);
+  line-height: 1.4;
+}
+.dnd-saves {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+.dnd-save {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  font-size: 12px;
+}
+.dnd-save-mod {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 13px;
+  width: 32px;
+  text-align: right;
+  color: var(--rdr-ink);
+}
+.dnd-save-label { color: var(--rdr-ink); }
+
+/* D&D footer */
+.dnd-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid rgba(60,30,15,.25);
+  padding-top: 16px;
+  margin-top: 8px;
+}
+.dnd-stamp {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: rgba(60,30,15,.45);
+}
+.dnd-sig {
+  font-family: 'Caveat', cursive;
+  font-size: 32px;
+  color: var(--rdr-ink);
+  transform: rotate(-2deg);
+  display: inline-block;
+}
+
+/* === GoW Hobbies === */
+.world-hobbies {
+  background:
+    linear-gradient(180deg, #080810 0%, #10101a 60%, #080810 100%);
+  padding: 120px 40px;
+  position: relative;
+  color: var(--gow-frost);
+  overflow: hidden;
+}
+.world-hobbies::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse at center top, rgba(58,106,138,.15) 0%, transparent 50%),
+    repeating-linear-gradient(0deg, transparent 0, transparent 40px, rgba(255,255,255,.01) 40px, rgba(255,255,255,.01) 41px);
+  pointer-events: none;
+}
+.runes-bg {
+  position: absolute;
+  inset: 0;
+  font-family: 'Cinzel', 'Georgia', serif;
+  pointer-events: none;
+  opacity: .04;
+  font-size: 80px;
+  word-spacing: 30px;
+  line-height: 1.2;
+  padding: 40px;
+  overflow: hidden;
+  user-select: none;
+}
+.gow-header {
+  text-align: center;
+  margin-bottom: 60px;
+  position: relative;
+  z-index: 2;
+}
+.gow-prelabel {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .5em;
+  color: var(--gow-rune);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.gow-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(36px, 5vw, 64px);
+  letter-spacing: .15em;
+  color: var(--gow-frost);
+  text-transform: uppercase;
+  text-shadow: 0 0 40px rgba(58,106,138,.3);
+}
+.gow-title .accent { color: var(--gow-rune); font-style: italic; }
+.gow-sub {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  color: var(--gow-rune);
+  font-size: 20px;
+  margin-top: 12px;
+  opacity: .85;
+}
+.classes {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  position: relative;
+  z-index: 2;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.class-card {
+  background: linear-gradient(180deg, rgba(40,50,70,.6), rgba(15,20,30,.95));
+  border: 1px solid rgba(214,192,140,.3);
+  padding: 24px 20px;
+  position: relative;
+  transition: all .4s cubic-bezier(.7,0,.2,1);
+  cursor: pointer;
+  overflow: hidden;
+}
+.class-card::before {
+  content: '';
+  position: absolute; inset: 0;
+  border: 1px solid transparent;
+  background:
+    linear-gradient(135deg, var(--gow-rune), transparent 30%, transparent 70%, var(--gow-rune)) border-box;
+  -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0;
+  transition: opacity .3s;
+  pointer-events: none;
+}
+.class-card:hover { transform: translateY(-6px); border-color: var(--gow-rune); }
+.class-card:hover::before { opacity: 1; }
+.class-card:hover .class-rune { transform: rotate(360deg) scale(1.1); color: var(--gow-rune); }
+.class-rune {
+  font-family: 'Cinzel', serif;
+  font-size: 56px;
+  color: var(--gow-frost);
+  text-align: center;
+  margin-bottom: 12px;
+  text-shadow: 0 0 20px rgba(58,106,138,.4);
+  transition: transform .8s cubic-bezier(.7,0,.2,1), color .4s;
+  display: block;
+}
+.class-name {
+  font-family: 'Cinzel', serif;
+  font-size: 22px;
+  letter-spacing: .15em;
+  color: var(--gow-frost);
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 4px;
+}
+.class-tier {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .25em;
+  color: var(--gow-rune);
+  text-align: center;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+.class-stats {
+  font-family: 'JetBrains Mono', monospace;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.class-stat {
+  display: grid;
+  grid-template-columns: 50px 1fr 24px;
+  gap: 8px;
+  align-items: center;
+  font-size: 9px;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--gow-frost);
+}
+.class-stat-bar {
+  height: 8px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(214,192,140,.2);
+  position: relative;
+  overflow: hidden;
+}
+.class-stat-fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--gow-blue), var(--gow-rune));
+  transform-origin: left;
+  transform: scaleX(0);
+  animation: statGrow 1.4s cubic-bezier(.7,0,.2,1) forwards;
+}
+@keyframes statGrow { to { transform: scaleX(var(--lvl, 0.5)); } }
+.class-stat-val {
+  text-align: right;
+  color: var(--gow-rune);
+  font-weight: 700;
+}
+.class-bio {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--gow-frost);
+  opacity: .8;
+  border-top: 1px solid rgba(214,192,140,.2);
+  padding-top: 12px;
+}
+
+/* === Witcher Projects === */
+.world-projects {
+  background:
+    radial-gradient(ellipse at center, #2a2218 0%, #15110a 100%);
+  color: var(--witcher-paper);
+  padding: 120px 40px;
+  position: relative;
+}
+.world-projects::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    repeating-linear-gradient(45deg, transparent 0, transparent 60px, rgba(201,164,73,.02) 60px, rgba(201,164,73,.02) 61px);
+  pointer-events: none;
+}
+.witcher-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+}
+.witcher-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  border-bottom: 1px solid rgba(201,164,73,.4);
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+}
+.witcher-prelabel {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .4em;
+  color: var(--witcher-gold);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.witcher-title {
+  font-family: 'Cinzel', 'Instrument Serif', serif;
+  font-size: clamp(36px, 5vw, 64px);
+  letter-spacing: .04em;
+  color: var(--witcher-paper);
+}
+.witcher-title .gold { color: var(--witcher-gold); font-style: italic; }
+.witcher-meta {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .15em;
+  color: var(--witcher-gold);
+  text-align: right;
+  text-transform: uppercase;
+}
+.witcher-meta .big {
+  font-family: 'Cinzel', serif;
+  font-size: 48px;
+  display: block;
+  color: var(--witcher-paper);
+  letter-spacing: .04em;
+}
+.quest-list {
+  display: flex;
+  flex-direction: column;
+}
+.quest-row {
+  display: grid;
+  grid-template-columns: 60px 1fr 200px 28px;
+  gap: 24px;
+  padding: 24px 16px;
+  border-bottom: 1px solid rgba(201,164,73,.15);
+  align-items: center;
+  cursor: pointer;
+  transition: all .3s;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+}
+.quest-row::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: var(--witcher-gold);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform .3s;
+}
+.quest-row:hover {
+  background: linear-gradient(to right, rgba(201,164,73,.1), transparent);
+  padding-left: 28px;
+}
+.quest-row:hover::before { transform: scaleY(1); }
+.quest-row:hover .quest-name { color: var(--witcher-gold); }
+.quest-num {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  color: var(--witcher-gold);
+  letter-spacing: .15em;
+}
+.quest-name {
+  font-family: 'Instrument Serif', serif;
+  font-size: clamp(22px, 2.4vw, 34px);
+  font-style: italic;
+  line-height: 1.1;
+  transition: color .3s;
+}
+.quest-name .small {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-style: normal;
+  font-size: 11px;
+  color: var(--witcher-gold);
+  letter-spacing: .2em;
+  margin-top: 6px;
+  text-transform: uppercase;
+  opacity: .8;
+}
+.quest-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.quest-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  padding: 2px 6px;
+  border: 1px solid rgba(201,164,73,.3);
+  color: var(--witcher-gold);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+}
+.quest-arrow {
+  color: var(--witcher-gold);
+  font-size: 18px;
+  transition: transform .3s;
+}
+.quest-row:hover .quest-arrow { transform: translateX(6px); }
+
+/* Quest log overlay */
+.quest-log-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 850;
+  background: rgba(0,0,0,.85);
+  backdrop-filter: blur(8px);
+  display: grid;
+  place-items: center;
+  padding: 40px;
+  animation: fadeIn .3s;
+}
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.quest-log {
+  width: min(900px, 100%);
+  max-height: 80vh;
+  overflow: auto;
+  background: var(--witcher-paper);
+  color: var(--witcher-ink);
+  padding: 36px;
+  font-family: 'Special Elite', 'Courier New', monospace;
+  position: relative;
+  box-shadow: 0 30px 80px rgba(0,0,0,.7);
+}
+.quest-log h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 28px;
+  letter-spacing: .1em;
+  margin-bottom: 16px;
+  border-bottom: 2px solid var(--witcher-blood);
+  padding-bottom: 8px;
+}
+.quest-log-close {
+  position: absolute;
+  top: 20px; right: 20px;
+  background: transparent;
+  border: 1px solid var(--witcher-ink);
+  font-family: inherit;
+  width: 32px; height: 32px;
+  cursor: pointer;
+  font-size: 18px;
+}
+.quest-log-item {
+  border-bottom: 1px dashed rgba(0,0,0,.2);
+  padding: 14px 0;
+}
+.quest-log-item h4 {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 22px;
+  font-weight: 400;
+  margin-bottom: 4px;
+}
+.quest-log-item .meta {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .15em;
+  color: var(--witcher-blood);
+  margin-bottom: 6px;
+}
+.quest-log-item p { font-size: 13px; line-height: 1.6; }
+
+/* === Contact — Light the Beacon === */
+.world-contact {
+  background: #080608;
+  background-image:
+    radial-gradient(ellipse at 20% 80%, rgba(160,96,58,.12) 0%, transparent 40%),
+    radial-gradient(ellipse at 80% 20%, rgba(30,20,10,.6) 0%, transparent 40%);
+  color: #f4f0e8;
+  padding: 120px 40px 60px;
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+}
+
+/* Mountain silhouette */
+.beacon-mountains {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+.beacon-mountains svg {
+  position: absolute;
+  bottom: 0; left: 0;
+  width: 100%; height: 60%;
+}
+
+/* Beacon smoke trails */
+.beacon-trails {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.beacon-trail {
+  position: absolute;
+  bottom: 38%;
+  width: 3px;
+  height: 60px;
+  background: linear-gradient(to top, rgba(160,96,58,.5), transparent);
+  border-radius: 2px;
+  animation: trailRise 3s ease-in infinite;
+}
+@keyframes trailRise {
+  0% { transform: translateY(0) scaleX(1); opacity: .6; }
+  100% { transform: translateY(-120px) scaleX(0.3); opacity: 0; }
+}
+
+.contact-container {
+  max-width: 1300px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+.contact-header {
+  text-align: center;
+  margin-bottom: 50px;
+}
+.contact-header .label {
+  display: inline-block;
+  background: transparent;
+  border: 1px solid var(--ember);
+  color: var(--ember);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  padding: 6px 16px;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+.contact-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(50px, 10vw, 140px);
+  line-height: .9;
+  letter-spacing: .05em;
+  color: var(--fg);
+  text-transform: uppercase;
+}
+.contact-title .ember {
+  color: var(--ember);
+  text-shadow: 0 0 40px rgba(160,96,58,.3);
+}
+.contact-tag {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 20px;
+  color: var(--fg-dim);
+  margin-top: 20px;
+}
+
+/* Beacon flame */
+.beacon-flame {
+  display: inline-flex;
+  align-items: center;
+  width: 20px; height: 24px;
+  color: var(--fg-mute);
+  transition: color .5s, filter .5s;
+  flex-shrink: 0;
+}
+.beacon-flame svg { width: 100%; height: 100%; }
+.beacon-flame.lit {
+  color: var(--ember);
+  filter: drop-shadow(0 0 8px var(--ember));
+  animation: flameDance 1.2s ease-in-out infinite;
+}
+.beacon-flame.big { width: 50px; height: 60px; margin: 0 auto 16px; display: block; }
+@keyframes flameDance {
+  0%, 100% { transform: scaleX(1) rotate(-1deg); }
+  50% { transform: scaleX(0.95) rotate(1deg); }
+}
+
+.dialog-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: 40px;
+  align-items: start;
+}
+.dialog-choices {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.dialog-choices-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--ember);
+  margin-bottom: 4px;
+}
+.dialog-choice {
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.12);
+  padding: 16px 20px;
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  transition: all .2s;
+  width: 100%;
+}
+.dialog-choice:hover { border-color: var(--ember); background: rgba(160,96,58,.08); transform: translateX(8px); }
+.dialog-choice .key {
+  width: 28px; height: 28px;
+  background: var(--ember);
+  color: #000;
+  display: grid;
+  place-items: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 700;
+  font-size: 13px;
+  border: 1px solid rgba(0,0,0,.3);
+  flex-shrink: 0;
+}
+.dialog-choice .text { font-family: 'Instrument Serif', serif; font-size: 18px; }
+.dialog-choice.active { border-color: var(--ember); background: rgba(160,96,58,.1); }
+
+.contact-form {
+  background: rgba(0,0,0,.5);
+  border: 1px solid rgba(160,96,58,.25);
+  padding: 28px;
+  position: relative;
+}
+.contact-form::before {
+  content: '';
+  position: absolute;
+  top: -1px; left: -1px;
+  width: 40px; height: 40px;
+  border-top: 2px solid var(--ember);
+  border-left: 2px solid var(--ember);
+  pointer-events: none;
+}
+.contact-form::after {
+  content: '';
+  position: absolute;
+  bottom: -1px; right: -1px;
+  width: 40px; height: 40px;
+  border-bottom: 2px solid var(--ember);
+  border-right: 2px solid var(--ember);
+  pointer-events: none;
+}
+.contact-form-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 13px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--ember);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.form-field { position: relative; }
+.form-field label {
+  display: block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  color: var(--ember);
+  margin-bottom: 6px;
+}
+.form-field input,
+.form-field textarea {
+  width: 100%;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.15);
+  color: #fff;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  padding: 12px 14px;
+  outline: none;
+  transition: border-color .2s;
+}
+.form-field input:focus,
+.form-field textarea:focus { border-color: var(--ember); }
+.form-field textarea {
+  resize: vertical;
+  min-height: 120px;
+  font-family: 'Instrument Serif', serif;
+  font-size: 16px;
+  line-height: 1.4;
+}
+.form-field input::placeholder, .form-field textarea::placeholder { color: rgba(255,255,255,.25); }
+.form-error {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  color: #e05a3a;
+  margin-top: 4px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+}
+.form-submit {
+  display: block;
+  width: 100%;
+  background: var(--ember);
+  color: #f0e8d8;
+  font-family: 'Cinzel', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: .2em;
+  padding: 16px;
+  border: none;
+  cursor: pointer;
+  text-transform: uppercase;
+  transition: all .2s;
+  box-shadow: 0 0 20px rgba(160,96,58,.25);
+}
+.form-submit:hover { background: #b87040; box-shadow: 0 0 30px rgba(160,96,58,.4); }
+.form-submit:disabled { opacity: .5; cursor: not-allowed; }
+.form-success {
+  text-align: center;
+  padding: 40px 20px;
+}
+.success-title {
+  font-family: 'Cinzel', serif;
+  font-size: 36px;
+  letter-spacing: .2em;
+  color: var(--ember);
+  text-shadow: 0 0 20px rgba(160,96,58,.3);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.form-success .desc {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  letter-spacing: .2em;
+  color: var(--fg-dim);
+  margin-top: 8px;
+  text-transform: uppercase;
+}
+
+.signal-tower {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+.signal-card {
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.1);
+  padding: 14px 12px;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  transition: all .2s;
+  display: block;
+}
+.signal-card:hover { border-color: var(--ember); background: rgba(160,96,58,.07); }
+.signal-card-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: .25em;
+  text-transform: uppercase;
+  color: var(--ember);
+  margin-bottom: 6px;
+}
+.signal-card-val {
+  font-family: 'Instrument Serif', serif;
+  font-size: 18px;
+}
+
+/* Marquee strip between sections */
+.world-marquee {
+  background: var(--accent);
+  color: #000;
+  padding: 18px 0;
+  overflow: hidden;
+  border-top: 2px solid #000;
+  border-bottom: 2px solid #000;
+  position: relative;
+  z-index: 3;
+}
+.world-marquee-track {
+  display: flex;
+  gap: 60px;
+  white-space: nowrap;
+  animation: marquee 35s linear infinite;
+  font-family: 'Bangers', sans-serif;
+  font-size: 32px;
+  letter-spacing: .04em;
+}
+.world-marquee-track > span { display: flex; gap: 60px; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+@keyframes heeHee {
+  0%   { opacity: 0; transform: translate(-50%, -50%) rotate(-6deg) scale(.6); }
+  30%  { opacity: 1; transform: translate(-50%, -50%) rotate(-6deg) scale(1.1); }
+  70%  { opacity: 1; transform: translate(-50%, -50%) rotate(-6deg) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) rotate(-6deg) scale(.9); }
+}
+
+/* Footer */
+.world-footer {
+  background: #050505;
+  padding: 30px 40px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: var(--fg-mute);
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+  position: relative;
+  z-index: 3;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+  .minimap { display: none; }
+}
+@media (max-width: 900px) {
+  .hero-comic-grid { grid-template-columns: 1fr; }
+  .dialog-grid { grid-template-columns: 1fr; }
+  .dnd-top { grid-template-columns: 1fr; }
+  .dnd-abilities { grid-template-columns: repeat(3, 1fr); }
+  .dnd-ability:nth-child(3) { border-right: none; }
+  .dnd-ability:nth-child(4) { border-right: none; border-right: 1px solid rgba(60,30,15,.3); }
+  .dnd-mid { grid-template-columns: 1fr; }
+  .classes { grid-template-columns: 1fr 1fr; }
+  .quest-row { grid-template-columns: 40px 1fr 28px; gap: 12px; }
+  .quest-stack { display: none; }
+  .signal-tower { grid-template-columns: 1fr 1fr; }
+  .form-row { grid-template-columns: 1fr; }
+  .minimap { display: none; }
+  .hud { font-size: 10px; top: 8px; left: 8px; gap: 6px; }
+  .hud-level { min-width: 160px; }
+  .hud-right { top: 8px; right: 8px; }
+  section, .world-hero, .world-about, .world-hobbies, .world-projects, .world-contact {
+    padding-left: 16px; padding-right: 16px;
+  }
+}
+@media (max-width: 600px) {
+  .dnd-abilities { grid-template-columns: repeat(2, 1fr); }
+  .classes { grid-template-columns: 1fr; }
+  .signal-tower { grid-template-columns: 1fr 1fr; }
+}

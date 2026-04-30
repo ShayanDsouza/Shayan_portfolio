@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>CMS — Shayan Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:       #0a0a0a;
+  --bg2:      #111;
+  --bg3:      #181818;
+  --border:   rgba(255,255,255,.08);
+  --accent:   #ff5b1f;
+  --fg:       #f4f0e8;
+  --fg2:      #999;
+  --fg3:      #555;
+  --success:  #3ecf8e;
+  --danger:   #e05a3a;
+  --sidebar:  220px;
+}
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  display: flex;
+  min-height: 100vh;
+}
+
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar);
+  min-height: 100vh;
+  background: var(--bg2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+}
+.sidebar-logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-logo .site { font-size: 10px; letter-spacing: .3em; text-transform: uppercase; color: var(--fg2); margin-bottom: 4px; }
+.sidebar-logo .name { font-family: 'Instrument Serif', serif; font-style: italic; font-size: 20px; color: var(--fg); }
+.sidebar-logo .badge {
+  display: inline-block; margin-top: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: .2em; text-transform: uppercase;
+  padding: 2px 8px; border: 1px solid var(--accent); color: var(--accent);
+}
+.nav { flex: 1; padding: 12px 0; }
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 20px; cursor: pointer;
+  font-size: 13px; color: var(--fg2);
+  transition: all .15s; border-left: 3px solid transparent;
+  user-select: none;
+}
+.nav-item:hover { color: var(--fg); background: rgba(255,255,255,.03); }
+.nav-item.active { color: var(--fg); border-left-color: var(--accent); background: rgba(255,91,31,.07); }
+.nav-item .icon { font-size: 16px; width: 20px; text-align: center; flex-shrink: 0; }
+.sidebar-footer { padding: 16px; border-top: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.btn-outline {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 9px 14px; border: 1px solid var(--border); background: transparent;
+  color: var(--fg2); font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: .15em; text-transform: uppercase;
+  cursor: pointer; transition: all .15s; text-decoration: none;
+}
+.btn-outline:hover { border-color: rgba(255,255,255,.2); color: var(--fg); }
+.btn-outline.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+/* ── Main content ── */
+.main {
+  margin-left: var(--sidebar);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+.topbar {
+  padding: 0 32px;
+  height: 60px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky; top: 0; z-index: 50;
+  background: var(--bg);
+}
+.topbar-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; letter-spacing: .3em; text-transform: uppercase; color: var(--fg2);
+}
+.topbar-title span { color: var(--accent); }
+.btn-save {
+  display: flex; align-items: center; gap: 8px;
+  background: var(--accent); color: #000; border: none;
+  font-family: 'JetBrains Mono', monospace; font-weight: 700;
+  font-size: 11px; letter-spacing: .25em; text-transform: uppercase;
+  padding: 10px 20px; cursor: pointer; transition: background .15s;
+}
+.btn-save:hover { background: #ff7a45; }
+.btn-save:disabled { opacity: .4; cursor: not-allowed; }
+.content { padding: 32px; max-width: 900px; }
+
+/* ── Sections ── */
+.section { display: none; }
+.section.active { display: block; }
+.section-heading { margin-bottom: 28px; }
+.section-heading h2 { font-size: 22px; font-weight: 600; margin-bottom: 4px; }
+.section-heading p  { font-size: 13px; color: var(--fg2); }
+
+/* ── Cards ── */
+.card {
+  background: var(--bg2); border: 1px solid var(--border);
+  padding: 24px; margin-bottom: 20px;
+}
+.card-title {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: .3em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 18px;
+  padding-bottom: 10px; border-bottom: 1px solid var(--border);
+}
+
+/* ── Form ── */
+.field-group { display: grid; gap: 16px; margin-bottom: 16px; }
+.field-group.cols-2 { grid-template-columns: 1fr 1fr; }
+.field-group.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.field { display: flex; flex-direction: column; gap: 6px; }
+.field label {
+  font-size: 11px; font-weight: 500; letter-spacing: .05em;
+  color: var(--fg2); text-transform: uppercase;
+}
+.field input,
+.field textarea,
+.field select {
+  background: var(--bg3); border: 1px solid rgba(255,255,255,.1);
+  color: var(--fg); font-family: 'Inter', sans-serif; font-size: 14px;
+  padding: 10px 12px; outline: none; transition: border-color .15s;
+  width: 100%;
+}
+.field input:focus,
+.field textarea:focus,
+.field select:focus { border-color: var(--accent); }
+.field textarea { resize: vertical; min-height: 90px; }
+.field input::placeholder,
+.field textarea::placeholder { color: var(--fg3); }
+.field-hint { font-size: 11px; color: var(--fg3); margin-top: 2px; }
+
+/* ── Portrait upload ── */
+.portrait-upload { display: flex; gap: 20px; align-items: flex-start; }
+.portrait-preview {
+  width: 120px; height: 150px; flex-shrink: 0;
+  border: 2px dashed rgba(255,255,255,.15);
+  display: grid; place-items: center;
+  background: var(--bg3); position: relative; overflow: hidden;
+  cursor: pointer; transition: border-color .15s;
+}
+.portrait-preview:hover { border-color: var(--accent); }
+.portrait-preview img { width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; }
+.portrait-preview .placeholder {
+  font-size: 10px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--fg3); text-align: center; line-height: 1.6;
+}
+#portraitInput { display: none; }
+.portrait-actions { display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.btn-sm {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 8px 14px; border: 1px solid var(--border); background: transparent;
+  color: var(--fg2); font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: .15em; text-transform: uppercase;
+  cursor: pointer; transition: all .15s;
+}
+.btn-sm:hover { border-color: rgba(255,255,255,.2); color: var(--fg); }
+.btn-sm.danger:hover { border-color: var(--danger); color: var(--danger); }
+
+/* ── Project items ── */
+.project-list { display: flex; flex-direction: column; gap: 2px; }
+.project-item { border: 1px solid var(--border); background: var(--bg2); overflow: hidden; }
+.project-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 18px; cursor: pointer; user-select: none;
+  transition: background .15s;
+}
+.project-header:hover { background: rgba(255,255,255,.02); }
+.project-header-left { display: flex; align-items: center; gap: 14px; }
+.project-num {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px; color: var(--accent); width: 24px;
+}
+.project-name-preview { font-size: 14px; font-weight: 500; }
+.project-tag-preview {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--fg3); padding: 2px 6px; border: 1px solid var(--border);
+}
+.project-chevron { font-size: 10px; color: var(--fg3); transition: transform .2s; }
+.project-item.open .project-chevron { transform: rotate(180deg); }
+.project-body { display: none; padding: 20px 18px; border-top: 1px solid var(--border); background: var(--bg3); }
+.project-item.open .project-body { display: block; }
+
+/* ── Stats editor ── */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.stat-item { background: var(--bg3); border: 1px solid var(--border); padding: 12px; }
+.stat-item-label {
+  font-size: 9px; letter-spacing: .2em; text-transform: uppercase;
+  color: var(--fg3); margin-bottom: 8px;
+}
+
+/* ── Toast ── */
+.toast-container {
+  position: fixed; bottom: 24px; right: 24px; z-index: 9999;
+  display: flex; flex-direction: column; gap: 10px; pointer-events: none;
+}
+.toast {
+  background: var(--bg2); border: 1px solid var(--border);
+  border-left: 3px solid var(--success);
+  padding: 14px 18px; min-width: 260px;
+  font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  letter-spacing: .1em; text-transform: uppercase;
+  display: flex; align-items: center; gap: 10px;
+  animation: toastIn .3s ease; color: var(--fg);
+}
+.toast.error { border-left-color: var(--danger); }
+.toast.exit { animation: toastOut .3s forwards; }
+@keyframes toastIn  { from { transform: translateX(110%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+@keyframes toastOut { to   { transform: translateX(110%); opacity: 0; } }
+.toast-icon { font-size: 16px; }
+
+/* ── Divider ── */
+.divider { height: 1px; background: var(--border); margin: 24px 0; }
+
+/* ── Settings ── */
+.setting-row {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 0; border-bottom: 1px solid var(--border);
+}
+.setting-row:last-child { border-bottom: none; }
+.setting-info h4 { font-size: 14px; font-weight: 500; margin-bottom: 2px; }
+.setting-info p  { font-size: 12px; color: var(--fg2); }
+</style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="site">Portfolio</div>
+    <div class="name">Shayan Dsouza</div>
+    <div class="badge">CMS v1.0</div>
+  </div>
+  <nav class="nav">
+    <div class="nav-item active" data-section="hero">
+      <span class="icon">◈</span> Hero
+    </div>
+    <div class="nav-item" data-section="about">
+      <span class="icon">✎</span> About
+    </div>
+    <div class="nav-item" data-section="projects">
+      <span class="icon">⚔</span> Projects
+    </div>
+    <div class="nav-item" data-section="contact">
+      <span class="icon">◉</span> Contact
+    </div>
+    <div class="nav-item" data-section="settings">
+      <span class="icon">⚙</span> Settings
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <a href="../portfolio.html" target="_blank" class="btn-outline">↗ View Site</a>
+    <button class="btn-outline danger" onclick="logout()">← Logout</button>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title">Editing: <span id="topbarSection">Hero</span></div>
+    <button class="btn-save" id="saveBtn" onclick="saveSection()">▶ Save Changes</button>
+  </div>
+
+  <div class="content">
+
+    <!-- ── Hero ── -->
+    <div class="section active" id="sec-hero">
+      <div class="section-heading">
+        <h2>Hero Section</h2>
+        <p>The opening comic panel — name, tagline, quote and stats.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">◇ Name & Identity</div>
+        <div class="field-group cols-2">
+          <div class="field">
+            <label>First Name</label>
+            <input id="hero-firstName" type="text" placeholder="SHAYAN" />
+          </div>
+          <div class="field">
+            <label>Last Name</label>
+            <input id="hero-lastName" type="text" placeholder="DSOUZA" />
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field">
+            <label>Tagline</label>
+            <input id="hero-tagline" type="text" placeholder="Full-stack dev · Toronto, ON · CS @ UofT" />
+          </div>
+        </div>
+        <div class="field-group cols-2">
+          <div class="field">
+            <label>Speech Bubble Quote</label>
+            <input id="hero-quote" type="text" placeholder="BUILD IN THE DARK, SHIP IN THE LIGHT." />
+          </div>
+          <div class="field">
+            <label>Status</label>
+            <input id="hero-status" type="text" placeholder="AVAILABLE FALL '26" />
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">◇ Player Stats (4 boxes)</div>
+        <div class="stats-grid" id="stats-grid"></div>
+      </div>
+    </div>
+
+    <!-- ── About ── -->
+    <div class="section" id="sec-about">
+      <div class="section-heading">
+        <h2>About Section</h2>
+        <p>D&D character sheet — portrait photo and personality text.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">◇ Portrait Photo</div>
+        <div class="portrait-upload">
+          <div class="portrait-preview" id="portraitPreview" onclick="document.getElementById('portraitInput').click()">
+            <div class="placeholder">Click to<br/>upload</div>
+          </div>
+          <input type="file" id="portraitInput" accept="image/*" />
+          <div class="portrait-actions">
+            <p style="font-size:12px;color:var(--fg2);line-height:1.6;">
+              Click the frame to upload a photo.<br/>
+              Stored locally in the browser — no server required.<br/>
+              Recommended: square crop, 400×400px+.
+            </p>
+            <button class="btn-sm" onclick="document.getElementById('portraitInput').click()">↑ Upload Photo</button>
+            <button class="btn-sm danger" onclick="clearPortrait()">✕ Remove Photo</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">◇ Personality Text</div>
+        <div class="field-group">
+          <div class="field">
+            <label>Paragraph 1</label>
+            <textarea id="about-p1" rows="4" placeholder="Ships first, polishes loud..."></textarea>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field">
+            <label>Paragraph 2</label>
+            <textarea id="about-p2" rows="3" placeholder="Currently chasing..."></textarea>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Projects ── -->
+    <div class="section" id="sec-projects">
+      <div class="section-heading">
+        <h2>Projects</h2>
+        <p>Click any project to expand and edit. Changes apply to the Witcher contract board.</p>
+      </div>
+      <div class="project-list" id="projectList"></div>
+    </div>
+
+    <!-- ── Contact ── -->
+    <div class="section" id="sec-contact">
+      <div class="section-heading">
+        <h2>Contact Section</h2>
+        <p>Email and social links shown in the signal tower.</p>
+      </div>
+      <div class="card">
+        <div class="card-title">◇ Direct Frequencies</div>
+        <div class="field-group">
+          <div class="field">
+            <label>Email Address</label>
+            <input id="contact-email" type="email" placeholder="shayan.dsouza@mail.utoronto.ca" />
+          </div>
+        </div>
+        <div class="field-group cols-2">
+          <div class="field">
+            <label>GitHub URL</label>
+            <input id="contact-github" type="url" placeholder="https://github.com/yourusername" />
+          </div>
+          <div class="field">
+            <label>LinkedIn URL</label>
+            <input id="contact-linkedin" type="url" placeholder="https://linkedin.com/in/yourprofile" />
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field">
+            <label>Resume URL or File Path</label>
+            <input id="contact-resume" type="text" placeholder="/resume.pdf  or  https://..." />
+            <div class="field-hint">Leave as # if not yet available.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Settings ── -->
+    <div class="section" id="sec-settings">
+      <div class="section-heading">
+        <h2>Settings</h2>
+        <p>Admin credentials and data management.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-title">◇ Change Password</div>
+        <div class="field-group cols-2">
+          <div class="field">
+            <label>New Password</label>
+            <input id="newPassword" type="password" placeholder="••••••••" />
+          </div>
+          <div class="field">
+            <label>Confirm Password</label>
+            <input id="confirmPassword" type="password" placeholder="••••••••" />
+          </div>
+        </div>
+        <button class="btn-sm" onclick="changePassword()" style="margin-top:4px;">✓ Update Password</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">◇ Data Management</div>
+        <div class="setting-row">
+          <div class="setting-info">
+            <h4>Reset All Content</h4>
+            <p>Clears all CMS overrides — site will revert to its default text and images.</p>
+          </div>
+          <button class="btn-sm danger" onclick="resetAll()">✕ Reset to Defaults</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- .content -->
+</div><!-- .main -->
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+// ── Auth guard ──
+if (sessionStorage.getItem('cms_authed') !== 'true') {
+  window.location.href = '../login/';
+}
+
+function logout() {
+  sessionStorage.removeItem('cms_authed');
+  window.location.href = '../login/';
+}
+
+// ── CMS data ──
+const CMS_KEY = 'portfolio_cms';
+
+function loadCMS() {
+  try { return JSON.parse(localStorage.getItem(CMS_KEY) || '{}'); }
+  catch { return {}; }
+}
+
+function saveCMS(data) {
+  localStorage.setItem(CMS_KEY, JSON.stringify(data));
+}
+
+// ── Default projects ──
+const DEFAULT_PROJECTS = [
+  { name: "Art by Tvesa",        sub: "Artist portfolio + e-commerce",     year: "2025–26", stack: "React, Firebase, Three.js, Vite",   desc: "Three.js hero, scroll-driven 3D carousel, Pinterest-style gallery, custom CMS with drag-drop, image compression, real-time Firestore sync.", link: "https://artbytvesa.com",                                                                                                     tag: "// LIVE CONTRACT" },
+  { name: "Korotu SAR Monitor",  sub: "Vegetation monitoring via satellite", year: "2025",   stack: "React, Leaflet, Django, Jest",       desc: "Map dashboard with overlay toggling, GeoJSON regions, side-by-side compare, 60-test Jest suite with custom mocks.",                          link: "https://github.com/csc301-2026-s/project-printf-debuggers",                                                                  tag: "// MAIN QUEST" },
+  { name: "Loyalty Program",     sub: "Multi-role auth + admin/customer UI", year: "2024",  stack: "React, Express, Prisma",             desc: "Full-stack platform, role-based dashboards, REST API, responsive UI. CSC309 capstone.",                                                       link: "https://github.com/stalight/CSC309-A3",                                                                                      tag: "// SIDE QUEST" },
+  { name: "SWSFC Draft Sim",     sub: "FIFA-style XI builder",               year: "2024",  stack: "Java, Football API",                 desc: "Live Football API, draft your XI, watch chemistry score wreck you for picking five strikers.",                                                 link: "https://github.com/willgc88/SWSFC",                                                                                          tag: "// SIDE QUEST" },
+  { name: "Diagnostic Quiz ML",  sub: "Predicting student outcomes",         year: "2024",  stack: "PyTorch, NumPy",                     desc: "Ensemble of ML models predicting student performance on diagnostic questions for personalized education.",                                     link: "https://github.com/anthony-chen-ca/CSC311-project",                                                                           tag: "// MAIN QUEST" },
+  { name: "Dr. Mario in MIPS",   sub: "Pixel-pushin' assembly",              year: "2023",  stack: "MIPS Assembly",                      desc: "Built a Dr. Mario clone from scratch in MIPS assembly. Pixel collisions, falling pieces, the existential dread of register management.",       link: "#",                                                                                                                           tag: "// LEGENDARY" },
+  { name: "Soccer Market Value", sub: "What drives a striker's price",       year: "2024",  stack: "R, Linear Regression",               desc: "Statistical analysis on Transfermarkt + Kaggle data. Linear regression, feature selection, paper arguing age is overrated.",                  link: "https://docs.google.com/document/d/1JHNvzIGjuUvvlSqM1lN6jsVmNrZdg64o8C0nRinXkPk/edit?usp=sharing",                          tag: "// SCROLL QUEST" },
+  { name: "Housing Affordability",sub: "Canadian housing pain, charted",     year: "2024",  stack: "R, Shiny, Plotly",                   desc: "Interactive Shiny dashboard with weighted median income-to-housing metrics across Canadian cities, 2016 vs 2021 census.",                     link: "https://jackkfan.shinyapps.io/Final/",                                                                                        tag: "// SIDE QUEST" },
+];
+
+const DEFAULT_STATS = [
+  { label: 'Projects', value: '08' },
+  { label: 'Bench PR', value: '225' },
+  { label: 'Coffees/d', value: '∞' },
+  { label: 'Race PB',  value: '1:29' },
+];
+
+// ── Populate forms ──
+function populateForms() {
+  const cms = loadCMS();
+
+  // Hero
+  const h = cms.hero || {};
+  setVal('hero-firstName', h.firstName, 'SHAYAN');
+  setVal('hero-lastName',  h.lastName,  'DSOUZA');
+  setVal('hero-tagline',   h.tagline,   'Full-stack dev · Toronto, ON · CS @ UofT');
+  setVal('hero-quote',     h.quote,     'BUILD IN THE DARK, SHIP IN THE LIGHT.');
+  setVal('hero-status',    h.status,    "AVAILABLE FALL '26");
+  buildStatsGrid(h.stats || DEFAULT_STATS);
+
+  // About
+  const a = cms.about || {};
+  setVal('about-p1', a.p1, "Ships first, polishes loud. Reads docs cover to cover, then ignores the part that's wrong. Builds things people use, not things people benchmark.");
+  setVal('about-p2', a.p2, "Currently chasing: a 315 deadlift, a clean fingerstyle solo, and a frontend role that lets me actually design.");
+  if (a.portrait) showPortraitPreview(a.portrait);
+
+  // Projects
+  const projects = cms.projects || DEFAULT_PROJECTS;
+  buildProjectList(projects);
+
+  // Contact
+  const c = cms.contact || {};
+  setVal('contact-email',    c.email,    'shayan.dsouza@mail.utoronto.ca');
+  setVal('contact-github',   c.github,   'https://github.com/');
+  setVal('contact-linkedin', c.linkedin, 'https://linkedin.com/');
+  setVal('contact-resume',   c.resume,   '#');
+}
+
+function setVal(id, val, fallback) {
+  const el = document.getElementById(id);
+  if (el) el.value = val !== undefined ? val : fallback;
+}
+
+// ── Stats grid ──
+function buildStatsGrid(stats) {
+  const grid = document.getElementById('stats-grid');
+  grid.innerHTML = '';
+  stats.forEach((s, i) => {
+    grid.innerHTML += `
+      <div class="stat-item">
+        <div class="stat-item-label">Stat ${i + 1}</div>
+        <div class="field" style="margin-bottom:8px">
+          <label>Label</label>
+          <input data-stat="${i}" data-key="label" type="text" value="${esc(s.label)}" placeholder="e.g. Projects" />
+        </div>
+        <div class="field">
+          <label>Value</label>
+          <input data-stat="${i}" data-key="value" type="text" value="${esc(s.value)}" placeholder="e.g. 08" />
+        </div>
+      </div>`;
+  });
+}
+
+function readStats() {
+  const cms = loadCMS();
+  const base = (cms.hero && cms.hero.stats) || DEFAULT_STATS;
+  const stats = base.map((s, i) => ({ ...s }));
+  document.querySelectorAll('[data-stat]').forEach(el => {
+    const idx = parseInt(el.dataset.stat);
+    const key = el.dataset.key;
+    if (stats[idx]) stats[idx][key] = el.value;
+  });
+  return stats;
+}
+
+// ── Project list ──
+function buildProjectList(projects) {
+  const list = document.getElementById('projectList');
+  const nums = ['I','II','III','IV','V','VI','VII','VIII','IX','X'];
+  list.innerHTML = '';
+  projects.forEach((p, i) => {
+    const div = document.createElement('div');
+    div.className = 'project-item';
+    div.dataset.index = i;
+    div.innerHTML = `
+      <div class="project-header" onclick="toggleProject(${i})">
+        <div class="project-header-left">
+          <span class="project-num">${nums[i] || i+1}</span>
+          <span class="project-name-preview">${esc(p.name)}</span>
+          <span class="project-tag-preview">${esc(p.tag || '')}</span>
+        </div>
+        <span class="project-chevron">▼</span>
+      </div>
+      <div class="project-body">
+        <div class="field-group cols-2">
+          <div class="field"><label>Project Name</label><input data-proj="${i}" data-key="name" type="text" value="${esc(p.name)}" /></div>
+          <div class="field"><label>Tag Label</label><input data-proj="${i}" data-key="tag" type="text" value="${esc(p.tag)}" placeholder="// SIDE QUEST" /></div>
+        </div>
+        <div class="field-group cols-2">
+          <div class="field"><label>Subtitle</label><input data-proj="${i}" data-key="sub" type="text" value="${esc(p.sub)}" /></div>
+          <div class="field"><label>Year</label><input data-proj="${i}" data-key="year" type="text" value="${esc(p.year)}" placeholder="2024" /></div>
+        </div>
+        <div class="field-group">
+          <div class="field">
+            <label>Stack (comma separated)</label>
+            <input data-proj="${i}" data-key="stack" type="text" value="${esc(Array.isArray(p.stack) ? p.stack.join(', ') : p.stack)}" placeholder="React, Node, PostgreSQL" />
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field">
+            <label>Description</label>
+            <textarea data-proj="${i}" data-key="desc" rows="3">${esc(p.desc)}</textarea>
+          </div>
+        </div>
+        <div class="field-group">
+          <div class="field"><label>Link (GitHub / Live URL)</label><input data-proj="${i}" data-key="link" type="url" value="${esc(p.link)}" placeholder="https://..." /></div>
+        </div>
+      </div>`;
+    list.appendChild(div);
+  });
+}
+
+function toggleProject(i) {
+  const item = document.querySelector(`.project-item[data-index="${i}"]`);
+  item.classList.toggle('open');
+}
+
+function readProjects() {
+  const cms = loadCMS();
+  const base = JSON.parse(JSON.stringify(cms.projects || DEFAULT_PROJECTS));
+  document.querySelectorAll('[data-proj]').forEach(el => {
+    const i   = parseInt(el.dataset.proj);
+    const key = el.dataset.key;
+    if (base[i]) base[i][key] = el.value;
+  });
+  // Normalise stack back to array
+  base.forEach(p => {
+    if (typeof p.stack === 'string') {
+      p.stack = p.stack.split(',').map(s => s.trim()).filter(Boolean);
+    }
+  });
+  return base;
+}
+
+// ── Portrait ──
+document.getElementById('portraitInput').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  if (file.size > 5 * 1024 * 1024) { toast('Image must be under 5MB', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = ev => {
+    showPortraitPreview(ev.target.result);
+    const cms = loadCMS();
+    if (!cms.about) cms.about = {};
+    cms.about.portrait = ev.target.result;
+    saveCMS(cms);
+    toast('Portrait saved');
+  };
+  reader.readAsDataURL(file);
+});
+
+function showPortraitPreview(src) {
+  const prev = document.getElementById('portraitPreview');
+  prev.innerHTML = `<img src="${src}" alt="Portrait" />`;
+}
+
+function clearPortrait() {
+  const prev = document.getElementById('portraitPreview');
+  prev.innerHTML = `<div class="placeholder">Click to<br/>upload</div>`;
+  document.getElementById('portraitInput').value = '';
+  const cms = loadCMS();
+  if (cms.about) { delete cms.about.portrait; saveCMS(cms); }
+  toast('Portrait removed');
+}
+
+// ── Navigation ──
+let currentSection = 'hero';
+const sectionNames = { hero: 'Hero', about: 'About', projects: 'Projects', contact: 'Contact', settings: 'Settings' };
+
+document.querySelectorAll('.nav-item').forEach(item => {
+  item.addEventListener('click', function() {
+    const sec = this.dataset.section;
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    this.classList.add('active');
+    document.getElementById('sec-' + sec).classList.add('active');
+    document.getElementById('topbarSection').textContent = sectionNames[sec];
+    currentSection = sec;
+    document.getElementById('saveBtn').style.display = sec === 'settings' ? 'none' : '';
+  });
+});
+
+// ── Save ──
+function saveSection() {
+  const cms = loadCMS();
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true;
+
+  if (currentSection === 'hero') {
+    cms.hero = {
+      firstName: document.getElementById('hero-firstName').value.trim() || 'SHAYAN',
+      lastName:  document.getElementById('hero-lastName').value.trim()  || 'DSOUZA',
+      tagline:   document.getElementById('hero-tagline').value.trim()   || 'Full-stack dev · Toronto, ON · CS @ UofT',
+      quote:     document.getElementById('hero-quote').value.trim()     || 'BUILD IN THE DARK, SHIP IN THE LIGHT.',
+      status:    document.getElementById('hero-status').value.trim()    || "AVAILABLE FALL '26",
+      stats:     readStats(),
+    };
+  }
+
+  if (currentSection === 'about') {
+    if (!cms.about) cms.about = {};
+    cms.about.p1 = document.getElementById('about-p1').value.trim();
+    cms.about.p2 = document.getElementById('about-p2').value.trim();
+    // portrait is saved immediately on upload
+  }
+
+  if (currentSection === 'projects') {
+    cms.projects = readProjects();
+  }
+
+  if (currentSection === 'contact') {
+    cms.contact = {
+      email:    document.getElementById('contact-email').value.trim(),
+      github:   document.getElementById('contact-github').value.trim(),
+      linkedin: document.getElementById('contact-linkedin').value.trim(),
+      resume:   document.getElementById('contact-resume').value.trim() || '#',
+    };
+  }
+
+  saveCMS(cms);
+  setTimeout(() => { btn.disabled = false; }, 600);
+  toast('Saved — reload the site to see changes');
+}
+
+// ── Password change ──
+function changePassword() {
+  const np = document.getElementById('newPassword').value;
+  const cp = document.getElementById('confirmPassword').value;
+  if (!np) { toast('Enter a new password', 'error'); return; }
+  if (np !== cp) { toast('Passwords do not match', 'error'); return; }
+  if (np.length < 4) { toast('Minimum 4 characters', 'error'); return; }
+  localStorage.setItem('cms_password', np);
+  document.getElementById('newPassword').value = '';
+  document.getElementById('confirmPassword').value = '';
+  toast('Password updated');
+}
+
+// ── Reset ──
+function resetAll() {
+  if (!confirm('Reset all content to defaults? This cannot be undone.')) return;
+  localStorage.removeItem(CMS_KEY);
+  populateForms();
+  toast('Content reset to defaults');
+}
+
+// ── Toast ──
+function toast(msg, type) {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast' + (type === 'error' ? ' error' : '');
+  t.innerHTML = `<span class="toast-icon">${type === 'error' ? '✗' : '✓'}</span> ${msg}`;
+  c.appendChild(t);
+  setTimeout(() => {
+    t.classList.add('exit');
+    setTimeout(() => t.remove(), 350);
+  }, 2800);
+}
+
+function esc(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Init ──
+populateForms();
+</script>
+</body>
+</html>
