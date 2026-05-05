@@ -84,7 +84,7 @@ function Hobbies() {
       </div>
 
       {/* Live telemetry strip — F1 countdown + Now Spinning */}
-      <div style={{ maxWidth: 1400, margin: '60px auto 0', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 0, border: '1px solid rgba(168,154,136,.2)', position: 'relative', zIndex: 2, fontFamily: "'JetBrains Mono', monospace" }}>
+      <div className="telemetry-strip" style={{ maxWidth: 1400, margin: '60px auto 0', display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 0, border: '1px solid rgba(168,154,136,.2)', position: 'relative', zIndex: 2, fontFamily: "'JetBrains Mono', monospace" }}>
         <F1Cell />
         <NowPlayingCell />
       </div>
@@ -164,7 +164,7 @@ function F1Cell() {
   }, []);
 
   return (
-    <div style={{ padding: 24, borderRight: '1px solid rgba(168,154,136,.2)' }}>
+    <div className="telemetry-cell" style={{ padding: 24, borderRight: '1px solid rgba(168,154,136,.2)' }}>
       <div style={{ fontSize: 10, letterSpacing: '.25em', color: 'var(--gow-rune)', textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
         <span>F1 — {race.name || 'Loading…'}</span><span style={{ color: 'var(--accent)' }}>● LIVE</span>
       </div>

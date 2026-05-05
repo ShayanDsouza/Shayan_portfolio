@@ -1681,33 +1681,136 @@ img { max-width: 100%; }
   z-index: 3;
 }
 
-/* Responsive */
-@media (max-width: 1200px) {
+/* =============================================
+   RESPONSIVE — mobile-first breakpoints
+   ============================================= */
+
+/* Tablet — 1024px */
+@media (max-width: 1024px) {
   .minimap { display: none; }
-}
-@media (max-width: 900px) {
-  .hero-comic-grid { grid-template-columns: 1fr; }
-  .dialog-grid { grid-template-columns: 1fr; }
-  .dnd-top { grid-template-columns: 1fr; }
-  .dnd-abilities { grid-template-columns: repeat(3, 1fr); }
-  .dnd-ability:nth-child(3) { border-right: none; }
-  .dnd-ability:nth-child(4) { border-right: none; border-right: 1px solid rgba(60,30,15,.3); }
-  .dnd-mid { grid-template-columns: 1fr; }
+  .hero-comic-grid { grid-template-columns: 1fr 1fr; }
   .classes { grid-template-columns: 1fr 1fr; }
+  .witcher-meta .big { font-size: 36px; }
+}
+
+/* Large phone / small tablet — 900px */
+@media (max-width: 900px) {
+  /* General padding */
+  .world-hero, .world-about, .world-hobbies,
+  .world-projects, .world-contact {
+    padding: 80px 20px 60px;
+  }
+
+  /* HUD hidden on mobile */
+  .hud, .hud-right, .minimap { display: none; }
+
+  /* ── Hero ── */
+  .hero-comic-grid { grid-template-columns: 1fr; }
+  /* Remove tilts on mobile — too heavy */
+  .comic-panel.tilt-l,
+  .comic-panel.tilt-r { transform: none !important; }
+  .comic-panel.tilt-l:hover,
+  .comic-panel.tilt-r:hover { transform: translate(-4px,-4px) !important; }
+
+  /* ── About / D&D ── */
+  .dnd-sheet { padding: 24px 16px; }
+  .dnd-top { grid-template-columns: 1fr; }
+  .dnd-portrait { flex-direction: row; align-items: center; gap: 20px; }
+  .dnd-portrait-frame { width: 120px; height: 150px; flex-shrink: 0; }
+  .dnd-portrait-cap { font-size: 12px; }
+  .dnd-id-grid { grid-template-columns: 1fr 1fr; }
+  .dnd-field.big { grid-column: 1 / -1; }
+  .dnd-abilities { grid-template-columns: repeat(3, 1fr); }
+  .dnd-ability:nth-child(3n) { border-right: none; }
+  .dnd-mid { grid-template-columns: 1fr; }
+
+  /* ── Hobbies ── */
+  .classes { grid-template-columns: 1fr 1fr; }
+  /* Telemetry strip — stack to 1 col */
+  .telemetry-strip { grid-template-columns: 1fr !important; }
+  .telemetry-cell { border-right: none !important; border-bottom: 1px solid rgba(168,154,136,.2); }
+
+  /* ── Projects ── */
+  .witcher-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+  .witcher-meta { text-align: left; }
+  .witcher-meta .big { font-size: 32px; }
   .quest-row { grid-template-columns: 40px 1fr 28px; gap: 12px; }
   .quest-stack { display: none; }
-  .signal-tower { grid-template-columns: 1fr 1fr; }
+
+  /* ── Contact ── */
+  .dialog-grid { grid-template-columns: 1fr; }
+  .signal-tower { grid-template-columns: repeat(2, 1fr); }
   .form-row { grid-template-columns: 1fr; }
-  .minimap { display: none; }
-  .hud { font-size: 10px; top: 8px; left: 8px; gap: 6px; }
-  .hud-level { min-width: 160px; }
-  .hud-right { top: 8px; right: 8px; }
-  section, .world-hero, .world-about, .world-hobbies, .world-projects, .world-contact {
-    padding-left: 16px; padding-right: 16px;
-  }
+  .contact-title { font-size: clamp(44px, 14vw, 100px); }
+
+  /* ── Marquee ── */
+  .world-marquee-track { font-size: 22px; }
+
+  /* ── Boot ── */
+  .boot-controls { flex-wrap: wrap; gap: 12px; justify-content: center; }
 }
+
+/* Phone — 600px */
 @media (max-width: 600px) {
+  /* General padding */
+  .world-hero, .world-about, .world-hobbies,
+  .world-projects, .world-contact {
+    padding: 60px 16px 48px;
+  }
+
+  /* ── Hero ── */
+  .comic-name { font-size: clamp(56px, 16vw, 100px); }
+  .comic-thought { font-size: 18px; }
+  .hero-cta { font-size: 17px; padding: 14px 16px; }
+
+  /* ── About / D&D ── */
+  .dnd-sheet { padding: 20px 12px; }
+  .dnd-portrait { flex-direction: column; align-items: flex-start; }
+  .dnd-portrait-frame { width: 100%; height: 200px; }
+  .dnd-portrait-img img { object-position: top; }
+  .dnd-id-grid { grid-template-columns: 1fr; }
   .dnd-abilities { grid-template-columns: repeat(2, 1fr); }
+  .dnd-ability:nth-child(2n) { border-right: none; }
+  .dnd-ability:nth-child(3n) { border-right: 1px solid rgba(60,30,15,.3); }
+  .dnd-ability-score { font-size: 22px; }
+  .dnd-ability-mod { width: 42px; height: 42px; font-size: 18px; }
+  .about-title { font-size: clamp(32px, 9vw, 60px); }
+
+  /* ── Hobbies ── */
   .classes { grid-template-columns: 1fr; }
+  .gow-title { font-size: clamp(28px, 8vw, 48px); }
+
+  /* ── Projects ── */
+  .witcher-title { font-size: clamp(28px, 8vw, 48px); }
+  .quest-row { padding: 18px 10px; }
+  .quest-name { font-size: clamp(18px, 4.5vw, 26px); }
+  .quest-name .small { font-size: 10px; }
+  .quest-log { padding: 24px 16px; }
+
+  /* ── Contact ── */
+  .signal-tower { grid-template-columns: repeat(2, 1fr); }
+  .dialog-choice { padding: 12px 14px; }
+  .dialog-choice .text { font-size: 15px; }
+  .contact-form { padding: 20px 14px; }
+  .form-field input, .form-field textarea { font-size: 16px; } /* prevent iOS zoom */
+
+  /* ── Marquee ── */
+  .world-marquee { padding: 12px 0; }
+  .world-marquee-track { font-size: 18px; animation-duration: 25s; }
+
+  /* ── Boot ── */
+  .boot-title { font-size: clamp(48px, 14vw, 120px); }
+  .boot-press { padding: 14px 24px; font-size: 12px; }
+  .boot-loading { width: 180px; }
+}
+
+/* Small phone — 400px */
+@media (max-width: 400px) {
+  .world-hero, .world-about, .world-hobbies,
+  .world-projects, .world-contact { padding: 48px 12px 36px; }
+
+  .dnd-abilities { grid-template-columns: repeat(2, 1fr); }
   .signal-tower { grid-template-columns: 1fr 1fr; }
+  .hero-cta { font-size: 15px; padding: 12px; }
+  .comic-name { font-size: clamp(48px, 15vw, 80px); }
 }
