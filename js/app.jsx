@@ -97,39 +97,18 @@ function App() {
   return (
     <>
       {tx && <Transition kind={tx.kind} label={tx.label} sub={tx.sub} onDone={() => setTx(null)} />}
+      <HUD />
 
       <Hero />
-      <WorldMarquee />
       <About />
-      <WorldMarquee variant="rdr" />
-      <Hobbies />
-      <WorldMarquee variant="gow" />
       <Projects />
-      <WorldMarquee variant="quest" />
       <Contact />
       <Footer />
     </>
   );
 }
 
-function WorldMarquee({ variant }) {
-  const items = {
-    default: ['◇ FULL-STACK ◇', 'REACT', 'PYTHON', 'THREE.JS', 'JAVA', 'AVAILABLE FALL \'26', '★ ★ ★'],
-    rdr: ['CHAPTER ENDS', '— THE FRONTIER —', 'NEXT WAYPOINT', '◇ REALM OF RUNES ◇'],
-    gow: ['ᚠᚢᚦᚨᚱᚲ', 'GATES OPEN', '◇ CONTRACTS AHEAD ◇', '— TRAVEL ON —'],
-    witcher: ['HMM…', '◇ FRESH CONTRACTS POSTED ◇', '— TOSS A COIN —', 'LIGHT THE BEACON'],
-    quest: ['◇ FRESH CONTRACTS POSTED ◇', '— THE BEACON AWAITS —', 'SEND THE SIGNAL'],
-  };
-  const list = items[variant || 'default'];
-  return (
-    <div className="world-marquee">
-      <div className="world-marquee-track">
-        <span>{list.map((t, i) => <span key={i} style={{ marginRight: 60 }}>{t}</span>)}</span>
-        <span>{list.map((t, i) => <span key={i} style={{ marginRight: 60 }}>{t}</span>)}</span>
-      </div>
-    </div>
-  );
-}
+
 
 function Footer() {
   return (

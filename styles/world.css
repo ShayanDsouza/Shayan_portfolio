@@ -580,6 +580,42 @@ img { max-width: 100%; }
   z-index: 1;
 }
 
+/* Hero telemetry strip */
+.hero-telemetry {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  border: 1px solid rgba(160,144,128,.2);
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(8,6,8,.6);
+}
+.hero-telemetry-cell {
+  padding: 20px 24px;
+  border-right: 1px solid rgba(160,144,128,.2);
+}
+.hero-telemetry-cell:last-child { border-right: none; }
+.hero-telemetry-label {
+  font-size: 10px;
+  letter-spacing: .25em;
+  color: var(--comic-bone);
+  text-transform: uppercase;
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  opacity: .7;
+}
+.hero-telemetry-value {
+  font-size: 26px;
+  color: var(--comic-bone);
+  letter-spacing: -.02em;
+  line-height: 1.1;
+}
+.hero-telemetry-sub {
+  font-size: 10px;
+  color: var(--fg-dim);
+  margin-top: 6px;
+  letter-spacing: .1em;
+}
+
 /* Hero CTA buttons */
 .hero-cta {
   display: block;
@@ -1731,9 +1767,10 @@ img { max-width: 100%; }
 
   /* ── Hobbies ── */
   .classes { grid-template-columns: 1fr 1fr; }
-  /* Telemetry strip — stack to 1 col */
-  .telemetry-strip { grid-template-columns: 1fr !important; }
-  .telemetry-cell { border-right: none !important; border-bottom: 1px solid rgba(168,154,136,.2); }
+  /* Hero telemetry strip — stack to 1 col */
+  .hero-telemetry { grid-template-columns: 1fr; }
+  .hero-telemetry-cell { border-right: none; border-bottom: 1px solid rgba(160,144,128,.2); }
+  .hero-telemetry-cell:last-child { border-bottom: none; }
 
   /* ── Projects ── */
   .witcher-header { flex-direction: column; gap: 12px; align-items: flex-start; }
