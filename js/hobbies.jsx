@@ -173,28 +173,108 @@ function F1Cell() {
   );
 }
 
+const REST_QUIPS = [
+  { mood: 'Silence — the rarest track in existence',        detail: 'not currently playing · ears resting' },
+  { mood: 'Streaming: ambient keyboard clicks',             detail: 'lo-fi · mechanical · 60wpm' },
+  { mood: '404: Music not found',                           detail: 'have you tried turning it off and on again' },
+  { mood: 'Currently loading next banger…',                 detail: 'buffering · please stand by · ♪' },
+  { mood: 'The aux cord is charging',                       detail: 'standby mode · do not unplug' },
+  { mood: 'Vibing with: the sound of compilation errors',   detail: 'syntax error jazz · undefined groove' },
+  { mood: 'Off-duty. Guitar is also on break.',             detail: 'all instruments resting · come back later' },
+];
+
 function NowPlayingCell() {
-  const tracks = [
-    { mood: 'Late-night alt-rock deep dive', detail: 'prog · ambient · introspective' },
-    { mood: 'Acoustic blues fingerstyle', detail: 'slow tempo · clean tone · soul' },
-    { mood: 'Pre-set hype mix', detail: 'rock · loud · driving' },
-    { mood: 'Sunday race-day instrumentals', detail: 'orchestral · cinematic · tension' },
-  ];
-  const [idx, setIdx] = React.useState(0);
+  const [data, setData]   = React.useState(null);   // null = loading
+  const [quip, setQuip]   = React.useState(() => REST_QUIPS[Math.floor(Math.random() * REST_QUIPS.length)]);
+  const [error, setError] = React.useState(false);
+
   React.useEffect(() => {
-    const i = setInterval(() => setIdx(p => (p + 1) % tracks.length), 5000);
-    return () => clearInterval(i);
+    let alive = true;
+    const poll = async () => {
+      try {
+        const res  = await fetch('/api/now-playing');
+        const json = await res.json();
+        if (alive) setData(json);
+      } catch {
+        if (alive) setError(true);
+      }
+    };
+    poll();
+    const iv = setInterval(poll, 30000); // refresh every 30s
+    return () => { alive = false; clearInterval(iv); };
   }, []);
-  const t = tracks[idx];
+
+  // Rotate quips when not playing
+  React.useEffect(() => {
+    if (data?.isPlaying) return;
+    const iv = setInterval(() => {
+      setQuip(REST_QUIPS[Math.floor(Math.random() * REST_QUIPS.length)]);
+    }, 8000);
+    return () => clearInterval(iv);
+  }, [data?.isPlaying]);
+
+  const isPlaying = data?.isPlaying;
+
   return (
     <div style={{ padding: 24 }}>
+      {/* Header row */}
       <div style={{ fontSize: 10, letterSpacing: '.25em', color: 'var(--gow-rune)', textTransform: 'uppercase', display: 'flex', justifyContent: 'space-between', marginBottom: 10 }}>
-        <span>Now Spinning</span><span style={{ color: 'var(--accent)' }}>♪ LIVE</span>
+        <span>Now Spinning</span>
+        <span style={{ color: isPlaying ? 'var(--accent)' : 'var(--fg-mute)' }}>
+          {isPlaying ? '♪ LIVE' : '— OFFLINE'}
+        </span>
       </div>
-      <div style={{ fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontSize: 22, color: 'var(--gow-frost)' }}>
-        {t.mood}
-      </div>
-      <div style={{ fontSize: 10, color: 'var(--fg-dim)', marginTop: 6, letterSpacing: '.1em' }}>{t.detail}</div>
+
+      {/* Loading state */}
+      {data === null && !error && (
+        <div style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, color: 'var(--fg-mute)', letterSpacing: '.1em' }}>
+          ◌ tuning in…
+        </div>
+      )}
+
+      {/* Currently playing */}
+      {isPlaying && (
+        <>
+          <a href={data.songUrl} target="_blank" rel="noopener"
+             style={{ display: 'flex', alignItems: 'center', gap: 12, textDecoration: 'none', color: 'inherit' }}>
+            {data.albumArt && (
+              <img src={data.albumArt} alt="album art"
+                   style={{ width: 48, height: 48, objectFit: 'cover', border: '1px solid rgba(138,160,180,.2)', flexShrink: 0 }} />
+            )}
+            <div style={{ minWidth: 0 }}>
+              <div style={{ fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontSize: 20,
+                            color: 'var(--gow-frost)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {data.title}
+              </div>
+              <div style={{ fontSize: 10, color: 'var(--fg-dim)', marginTop: 4, letterSpacing: '.1em',
+                            whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {data.artist} · {data.album}
+              </div>
+            </div>
+          </a>
+          {/* Animated bar */}
+          <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end', height: 16, marginTop: 10 }}>
+            {[1,2,3,4,5].map(i => (
+              <div key={i} style={{
+                width: 3, background: 'var(--accent)',
+                animation: `nowBar 0.${8+i}s ease-in-out infinite alternate`,
+                animationDelay: `${i * 0.1}s`,
+                height: '100%', transformOrigin: 'bottom',
+              }} />
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Not playing / error */}
+      {(data !== null && !isPlaying) && (
+        <>
+          <div style={{ fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', fontSize: 19, color: 'var(--gow-frost)', lineHeight: 1.3 }}>
+            {quip.mood}
+          </div>
+          <div style={{ fontSize: 10, color: 'var(--fg-dim)', marginTop: 6, letterSpacing: '.1em' }}>{quip.detail}</div>
+        </>
+      )}
     </div>
   );
 }

@@ -1656,6 +1656,11 @@ img { max-width: 100%; }
 .world-marquee-track > span { display: flex; gap: 60px; }
 @keyframes marquee { to { transform: translateX(-50%); } }
 
+@keyframes nowBar {
+  from { transform: scaleY(0.15); }
+  to   { transform: scaleY(1); }
+}
+
 @keyframes heeHee {
   0%   { opacity: 0; transform: translate(-50%, -50%) rotate(-6deg) scale(.6); }
   30%  { opacity: 1; transform: translate(-50%, -50%) rotate(-6deg) scale(1.1); }
