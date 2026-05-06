@@ -95,6 +95,11 @@ const server = http.createServer(async (req, res) => {
   // Static files
   let filePath = path.join(ROOT, urlPath);
 
+  // Security: prevent path traversal (e.g. ../../etc/passwd)
+  if (!filePath.startsWith(ROOT + path.sep) && filePath !== ROOT) {
+    send404(res); return;
+  }
+
   if (fs.existsSync(filePath) && fs.statSync(filePath).isDirectory()) {
     const indexHtml = path.join(filePath, 'index.html');
     if (fs.existsSync(indexHtml)) filePath = indexHtml;

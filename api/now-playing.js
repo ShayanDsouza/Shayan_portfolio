@@ -25,9 +25,9 @@ async function getAccessToken() {
   return data.access_token;
 }
 
-export default async function handler(req, res) {
-  // CORS — allow same origin
-  res.setHeader('Access-Control-Allow-Origin', '*');
+module.exports = async function handler(req, res) {
+  // CORS — restrict to production domain
+  res.setHeader('Access-Control-Allow-Origin', 'https://shayan-dsouza.vercel.app');
   res.setHeader('Cache-Control', 'no-store, max-age=0');
 
   try {

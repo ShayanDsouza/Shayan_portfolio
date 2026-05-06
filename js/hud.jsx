@@ -2,8 +2,6 @@
 
 function HUD() {
   const s = useGameState();
-  const xpReq = window.gameStore.xpForLevel(s.level);
-  const pct = Math.min(1, s.xp / xpReq);
 
   const biomes = [
     { id: 'HERO', label: 'Title Card', target: '#hero' },
@@ -19,19 +17,6 @@ function HUD() {
       <div className="hud">
         <div className="hud-block hud-biome">
           NOW IN: {currentBiome.label}
-        </div>
-        <div className="hud-block hud-level">
-          <div className="row">
-            <span className="lvl">LVL {s.level}</span>
-            <span>{s.xp} / {xpReq} XP</span>
-          </div>
-          <div className="hud-bar">
-            <div className="hud-bar-fill" style={{ transform: `scaleX(${pct})` }}></div>
-          </div>
-          <div className="row" style={{ color: 'var(--fg-mute)', fontSize: 9 }}>
-            <span>NEUTRAL DEV</span>
-            <span>{s.achievements.length} / {Object.keys(window.ACHIEVEMENTS).length}</span>
-          </div>
         </div>
       </div>
 
