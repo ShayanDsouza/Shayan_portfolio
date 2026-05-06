@@ -4,11 +4,10 @@ function HUD() {
   const s = useGameState();
 
   const biomes = [
-    { id: 'HERO', label: 'Title Card', target: '#hero' },
-    { id: 'ABOUT', label: 'The Frontier', target: '#about' },
-    { id: 'HOBBIES', label: 'Realm of Runes', target: '#hobbies' },
+    { id: 'HERO',     label: 'Title Card',   target: '#hero'     },
+    { id: 'ABOUT',    label: 'The Frontier', target: '#about'    },
     { id: 'PROJECTS', label: 'Notice Board', target: '#projects' },
-    { id: 'CONTACT', label: 'The Beacon', target: '#contact' },
+    { id: 'CONTACT',  label: 'The Beacon',   target: '#contact'  },
   ];
   const currentBiome = biomes.find(b => b.id === s.biome) || biomes[0];
 

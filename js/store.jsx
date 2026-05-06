@@ -5,7 +5,6 @@ const ACHIEVEMENTS = {
   boot:     { id: 'boot',     title: 'Game Started',  desc: 'You pressed start.',           xp: 50, icon: '▶' },
   hero:     { id: 'hero',     title: 'Title Screen',  desc: 'Saw the splash page.',         xp: 50, icon: '✦' },
   about:    { id: 'about',    title: 'Read the Lore', desc: 'Lit the campfire.',            xp: 50, icon: '✎' },
-  hobbies:  { id: 'hobbies',  title: 'Class Selected',desc: 'Inspected the runes.',         xp: 50, icon: 'ᚱ' },
   projects: { id: 'projects', title: 'Notice Board',  desc: 'Found the contracts.',         xp: 50, icon: '⚔' },
   contact:  { id: 'contact',  title: 'Beacon Lit',    desc: 'Sent the signal.',             xp: 50, icon: '◉' },
 };
