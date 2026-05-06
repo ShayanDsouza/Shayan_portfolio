@@ -2,7 +2,15 @@
 const http  = require('http');
 const fs    = require('fs');
 const path  = require('path');
-const https = require('https');
+
+// Load .env file if present (local dev only — never committed)
+const envPath = path.join(__dirname, '.env');
+if (fs.existsSync(envPath)) {
+  fs.readFileSync(envPath, 'utf8').split('\n').forEach(line => {
+    const [key, ...vals] = line.trim().split('=');
+    if (key && !key.startsWith('#')) process.env[key] = vals.join('=');
+  });
+}
 
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
