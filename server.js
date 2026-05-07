@@ -82,6 +82,73 @@ async function handleNowPlaying(res) {
     return json({ isPlaying: false });
   }
 }
+// ── API: /api/contact ──────────────────────────────────────────────────────
+async function handleContact(req, res) {
+  const RESEND_API_KEY = process.env.RESEND_API_KEY;
+  const TO_EMAIL       = process.env.CONTACT_EMAIL || 'dsouza.shayan@gmail.com';
+
+  const json = (status, data) => {
+    res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    res.end(JSON.stringify(data));
+  };
+
+  if (!RESEND_API_KEY) {
+    return json(500, { ok: false, error: 'Email service not configured' });
+  }
+
+  // Parse JSON body from raw http request
+  const body = await new Promise((resolve) => {
+    let raw = '';
+    req.on('data', chunk => raw += chunk);
+    req.on('end', () => {
+      try { resolve(JSON.parse(raw)); } catch { resolve({}); }
+    });
+  });
+
+  const { name, email, topic, message } = body;
+  if (!name?.trim())  return json(400, { ok: false, error: 'Name is required' });
+  if (!email?.trim() || !/.+@.+\..+/.test(email)) return json(400, { ok: false, error: 'Valid email is required' });
+  if (!message?.trim()) return json(400, { ok: false, error: 'Message is required' });
+
+  const subject = `Portfolio Contact : ${(topic || 'No subject').trim()}`;
+
+  const escapeHtml = s => s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  const textBody = `Name: ${name.trim()}\nEmail: ${email.trim()}\nSubject: ${(topic||'N/A').trim()}\n\nMessage:\n${message.trim()}`;
+  const htmlBody = `
+    <div style="font-family: -apple-system, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
+      <div style="background: #0a0a0a; border: 1px solid #222; border-radius: 8px; padding: 24px; color: #c8c0b4;">
+        <h2 style="margin: 0 0 20px; color: #e8e0d4; font-size: 18px; border-bottom: 1px solid #222; padding-bottom: 12px;">🔥 New Beacon Signal</h2>
+        <table style="width: 100%; font-size: 14px; border-collapse: collapse;">
+          <tr><td style="padding: 8px 12px; color: #8a7a5a; font-weight: 600;">From</td><td style="padding: 8px 12px; color: #c8c0b4;">${escapeHtml(name.trim())}</td></tr>
+          <tr><td style="padding: 8px 12px; color: #8a7a5a; font-weight: 600;">Email</td><td style="padding: 8px 12px;"><a href="mailto:${escapeHtml(email.trim())}" style="color: #8a1520;">${escapeHtml(email.trim())}</a></td></tr>
+          <tr><td style="padding: 8px 12px; color: #8a7a5a; font-weight: 600;">Subject</td><td style="padding: 8px 12px; color: #c8c0b4;">${escapeHtml((topic||'N/A').trim())}</td></tr>
+        </table>
+        <div style="margin-top: 20px; padding: 16px; background: #111; border: 1px solid #1a1a1a; border-radius: 4px;">
+          <div style="font-size: 10px; text-transform: uppercase; letter-spacing: 0.15em; color: #8a7a5a; margin-bottom: 8px;">Message</div>
+          <div style="color: #c8c0b4; font-size: 14px; line-height: 1.6; white-space: pre-wrap;">${escapeHtml(message.trim())}</div>
+        </div>
+        <div style="margin-top: 20px; font-size: 11px; color: #3a3630; text-align: center;">Sent from your portfolio contact form</div>
+      </div>
+    </div>`;
+
+  try {
+    const resendRes = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${RESEND_API_KEY}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ from: 'Portfolio <onboarding@resend.dev>', to: [TO_EMAIL], reply_to: email.trim(), subject, html: htmlBody, text: textBody }),
+    });
+    const result = await resendRes.json();
+    if (!resendRes.ok) {
+      console.error('Resend error:', result);
+      return json(500, { ok: false, error: 'Failed to send email' });
+    }
+    return json(200, { ok: true });
+  } catch (err) {
+    console.error('Contact error:', err.message);
+    return json(500, { ok: false, error: 'Server error' });
+  }
+}
 
 // ── HTTP server ────────────────────────────────────────────────────────────
 const server = http.createServer(async (req, res) => {
@@ -90,6 +157,10 @@ const server = http.createServer(async (req, res) => {
   // API routes
   if (urlPath === '/api/now-playing') {
     return handleNowPlaying(res);
+  }
+
+  if (urlPath === '/api/contact' && req.method === 'POST') {
+    return handleContact(req, res);
   }
 
   // Static files

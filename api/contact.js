@@ -2,7 +2,7 @@
 // Sends to your email with subject: "Portfolio Contact : [Subject]"
 
 const RESEND_API_KEY = process.env.RESEND_API_KEY;
-const TO_EMAIL       = process.env.CONTACT_EMAIL || 'shayan.dsouza@mail.utoronto.ca';
+const TO_EMAIL       = process.env.CONTACT_EMAIL || 'dsouza.shayan@gmail.com';
 
 module.exports = async function handler(req, res) {
   // Only allow POST
