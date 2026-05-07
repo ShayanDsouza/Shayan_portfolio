@@ -13,7 +13,6 @@ function Contact() {
       if (e.isIntersecting && e.intersectionRatio > 0.3) {
         window.gameStore.setBiome('CONTACT');
         window.gameStore.unlock('contact');
-        setTimeout(() => setLit(true), 400);
       }
     }, { threshold: [0.3] });
     if (ref.current) obs.observe(ref.current);
@@ -33,7 +32,7 @@ function Contact() {
   };
   const ph = placeholders[choice];
 
-  function submit(e) {
+  async function submit(e) {
     e.preventDefault();
     const fd = new FormData(e.target);
     const next = {};
@@ -42,8 +41,30 @@ function Contact() {
     if (!fd.get('message')?.trim()) next.message = 'required';
     setErrors(next);
     if (Object.keys(next).length) return;
+
     setSending(true);
-    setTimeout(() => { setSent(true); setSending(false); }, 1100);
+    try {
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name:    fd.get('name'),
+          email:   fd.get('email'),
+          topic:   fd.get('topic'),
+          message: fd.get('message'),
+        }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        setSent(true);
+      } else {
+        setErrors({ form: data.error || 'Something went wrong. Try the direct email link.' });
+      }
+    } catch (err) {
+      setErrors({ form: 'Network error. Try the direct email link instead.' });
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -111,8 +132,8 @@ function Contact() {
             <div className="contact-form">
               <div className="form-success">
                 <BeaconFlame lit={true} big={true} />
-                <div className="success-title">SIGNAL SEEN</div>
-                <div className="desc">REPLY WITHIN 48H</div>
+                <div className="success-title">BEACON · LIT</div>
+                <div className="desc">SIGNAL SEEN · REPLY WITHIN 48H</div>
                 <p style={{ marginTop: 24, fontFamily: "'Instrument Serif', serif", fontStyle: 'italic', color: 'var(--ember-bone)', fontSize: 18 }}>
                   Thanks for the call. The fire has been lit.
                 </p>
@@ -121,8 +142,8 @@ function Contact() {
           ) : (
             <form className="contact-form" onSubmit={submit}>
               <div className="contact-form-label">
-                <BeaconFlame lit={lit} />
-                <span>BEACON · {lit ? 'LIT' : 'COLD'}</span>
+                <BeaconFlame lit={false} />
+                <span>BEACON · COLD</span>
               </div>
               <div className="form-row">
                 <div className="form-field">
@@ -145,6 +166,7 @@ function Contact() {
                 <textarea name="message" placeholder={ph.msg} key={'m' + choice}></textarea>
                 {errors.message && <div className="form-error">✗ {errors.message}</div>}
               </div>
+              {errors.form && <div className="form-error" style={{ marginBottom: 12, textAlign: 'center' }}>✗ {errors.form}</div>}
               <button type="submit" className="form-submit" disabled={sending}>
                 {sending ? '◌ LIGHTING…' : '◉ LIGHT THE BEACON'}
               </button>
