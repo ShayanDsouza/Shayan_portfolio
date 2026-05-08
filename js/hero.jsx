@@ -1,5 +1,22 @@
 // Hero — dark noir comic title card + live telemetry (F1 + Spotify)
 
+// Shared F1 state — lets HUD read countdown data without prop drilling
+const _f1Listeners = new Set();
+const _f1State = { mode: 'load', raceName: '', countdown: '--:--:--:--', sessionLabel: '' };
+function setF1State(patch) {
+  Object.assign(_f1State, patch);
+  _f1Listeners.forEach(fn => fn({ ..._f1State }));
+}
+function useF1State() {
+  const [s, setS] = React.useState({ ..._f1State });
+  React.useEffect(() => {
+    _f1Listeners.add(setS);
+    return () => _f1Listeners.delete(setS);
+  }, []);
+  return s;
+}
+window.useF1State = useF1State;
+
 const REST_QUIPS = [
   { mood: 'Silence — the rarest track in existence',       detail: 'not currently playing · ears resting' },
   { mood: 'Streaming: ambient keyboard clicks',            detail: 'lo-fi · mechanical · 60wpm' },
@@ -97,65 +114,256 @@ function Hero() {
   );
 }
 
-/* ── F1 Countdown ──────────────────────────────── */
+/* ── F1 Countdown (API-powered) ─────────────────── */
+
+// Session duration estimates (minutes) for detecting "live" windows
+const SESSION_DURATIONS = {
+  FirstPractice: 60, SecondPractice: 60, ThirdPractice: 60,
+  SprintQualifying: 45, Sprint: 40, Qualifying: 60, Race: 120,
+};
+
+const SESSION_LABELS = {
+  FirstPractice: 'Practice 1', SecondPractice: 'Practice 2', ThirdPractice: 'Practice 3',
+  SprintQualifying: 'Sprint Quali', Sprint: 'Sprint', Qualifying: 'Qualifying', Race: 'Race',
+};
+
+// OpenF1 session_name values for matching
+const OPENF1_SESSION_MAP = {
+  FirstPractice: 'Practice 1', SecondPractice: 'Practice 2', ThirdPractice: 'Practice 3',
+  SprintQualifying: 'Sprint Qualifying', Sprint: 'Sprint', Qualifying: 'Qualifying', Race: 'Race',
+};
+
 function F1Cell() {
-  const [t, setT]     = React.useState('--:--:--:--');
-  const [race, setRace] = React.useState({ name: 'Loading…' });
+  const [schedule, setSchedule] = React.useState(null);   // { raceName, sessions: [{key, label, start, end}] }
+  const [mode, setMode]         = React.useState('load');  // 'load' | 'countdown' | 'live' | 'results'
+  const [countdown, setCountdown] = React.useState('--:--:--:--');
+  const [activeSession, setActiveSession] = React.useState(null);
+  const [nextSession, setNextSession]     = React.useState(null);
+  const [podium, setPodium]     = React.useState(null);    // [{name, team, pos}]
+  const [error, setError]       = React.useState(false);
 
+  // 1. Fetch next race schedule from Jolpica-F1
   React.useEffect(() => {
-    const calendar = [
-      { name: 'Australian GP',    date: new Date('2026-03-08T05:00:00Z') },
-      { name: 'Chinese GP',       date: new Date('2026-03-15T07:00:00Z') },
-      { name: 'Japanese GP',      date: new Date('2026-03-29T05:00:00Z') },
-      { name: 'Miami GP',         date: new Date('2026-05-03T19:30:00Z') },
-      { name: 'Canadian GP',      date: new Date('2026-05-24T18:00:00Z') },
-      { name: 'Monaco GP',        date: new Date('2026-06-07T13:00:00Z') },
-      { name: 'Barcelona GP',     date: new Date('2026-06-14T13:00:00Z') },
-      { name: 'Austrian GP',      date: new Date('2026-06-28T13:00:00Z') },
-      { name: 'British GP',       date: new Date('2026-07-05T14:00:00Z') },
-      { name: 'Belgian GP',       date: new Date('2026-07-19T13:00:00Z') },
-      { name: 'Hungarian GP',     date: new Date('2026-07-26T13:00:00Z') },
-      { name: 'Dutch GP',         date: new Date('2026-08-23T13:00:00Z') },
-      { name: 'Italian GP',       date: new Date('2026-09-06T13:00:00Z') },
-      { name: 'Spanish GP',       date: new Date('2026-09-13T13:00:00Z') },
-      { name: 'Azerbaijan GP',    date: new Date('2026-09-26T11:00:00Z') },
-      { name: 'Singapore GP',     date: new Date('2026-10-11T12:00:00Z') },
-      { name: 'United States GP', date: new Date('2026-10-25T19:00:00Z') },
-      { name: 'Mexico City GP',   date: new Date('2026-11-01T20:00:00Z') },
-      { name: 'Brazilian GP',     date: new Date('2026-11-08T17:00:00Z') },
-      { name: 'Las Vegas GP',     date: new Date('2026-11-22T06:00:00Z') },
-      { name: 'Qatar GP',         date: new Date('2026-11-29T16:00:00Z') },
-      { name: 'Abu Dhabi GP',     date: new Date('2026-12-06T13:00:00Z') },
-    ];
+    let alive = true;
+    (async () => {
+      try {
+        const res = await fetch('https://api.jolpi.ca/ergast/f1/current/next.json');
+        const json = await res.json();
+        const race = json?.MRData?.RaceTable?.Races?.[0];
+        if (!race || !alive) return;
 
-    const upd = () => {
-      const now  = new Date();
-      const next = calendar.find(r => r.date - now > 0) || calendar[calendar.length - 1];
-      setRace({ name: next.name });
-      const diff = next.date - now;
-      if (diff <= 0) { setT('LIGHTS OUT'); return; }
-      const d = Math.floor(diff / 86400000);
-      const h = Math.floor((diff % 86400000) / 3600000);
-      const m = Math.floor((diff % 3600000) / 60000);
-      const s = Math.floor((diff % 60000) / 1000);
-      const f = n => String(n).padStart(2, '0');
-      setT(`${f(d)}:${f(h)}:${f(m)}:${f(s)}`);
-    };
-    upd();
-    const iv = setInterval(upd, 1000);
-    return () => clearInterval(iv);
+        // Build sessions array with start/end times
+        const sessionKeys = ['FirstPractice', 'SecondPractice', 'ThirdPractice', 'SprintQualifying', 'Sprint', 'Qualifying', 'Race'];
+        const sessions = sessionKeys
+          .filter(k => race[k] || (k === 'Race' && race.date))
+          .map(k => {
+            const d = k === 'Race' ? race.date : race[k]?.date;
+            const t = k === 'Race' ? race.time : race[k]?.time;
+            if (!d || !t) return null;
+            const start = new Date(`${d}T${t}`);
+            const dur = SESSION_DURATIONS[k] || 120;
+            const end = new Date(start.getTime() + dur * 60000);
+            return { key: k, label: SESSION_LABELS[k], start, end };
+          })
+          .filter(Boolean)
+          .sort((a, b) => a.start - b.start);
+
+        if (alive) {
+          setSchedule({ raceName: race.raceName, round: race.round, season: race.season, sessions });
+          setF1State({ raceName: race.raceName });
+        }
+      } catch (e) {
+        console.warn('F1 schedule fetch failed:', e);
+        if (alive) setError(true);
+      }
+    })();
+    return () => { alive = false; };
   }, []);
 
-  return (
-    <div className="hero-telemetry-cell">
-      <div className="hero-telemetry-label">
-        <span>F1 · {race.name}</span>
-        <span style={{ color: 'var(--accent)' }}>● LIVE</span>
+  // 2. Tick every second — determine mode (countdown vs live vs results)
+  React.useEffect(() => {
+    if (!schedule) return;
+
+    const tick = () => {
+      const now = new Date();
+      // Find if a session is currently live
+      const live = schedule.sessions.find(s => now >= s.start && now <= s.end);
+      if (live) {
+        setMode('live');
+        setActiveSession(live);
+        setNextSession(null);
+        setF1State({ mode: 'live', sessionLabel: live.label });
+        return;
+      }
+
+      // Find next upcoming session
+      const upcoming = schedule.sessions.find(s => now < s.start);
+      if (upcoming) {
+        setMode('countdown');
+        setNextSession(upcoming);
+        setActiveSession(null);
+        const diff = upcoming.start - now;
+        const d = Math.floor(diff / 86400000);
+        const h = Math.floor((diff % 86400000) / 3600000);
+        const m = Math.floor((diff % 3600000) / 60000);
+        const s = Math.floor((diff % 60000) / 1000);
+        const f = n => String(n).padStart(2, '0');
+        const cd = `${f(d)}:${f(h)}:${f(m)}:${f(s)}`;
+        setCountdown(cd);
+        setF1State({ mode: 'countdown', countdown: cd, sessionLabel: upcoming.label });
+        return;
+      }
+
+      // All sessions past — check if the last session just ended (show results)
+      const lastSession = schedule.sessions[schedule.sessions.length - 1];
+      if (lastSession && now > lastSession.end) {
+        setMode('results');
+        setActiveSession(lastSession);
+        setF1State({ mode: 'results', sessionLabel: lastSession.label });
+      }
+    };
+
+    tick();
+    const iv = setInterval(tick, 1000);
+    return () => clearInterval(iv);
+  }, [schedule]);
+
+  // 3. Fetch top 3 results from OpenF1 when mode switches to 'results'
+  React.useEffect(() => {
+    if (mode !== 'results' || !activeSession || podium) return;
+    let alive = true;
+
+    (async () => {
+      try {
+        // Find the OpenF1 session key for the latest session
+        const sessionName = OPENF1_SESSION_MAP[activeSession.key] || 'Race';
+        const sessRes = await fetch(`https://api.openf1.org/v1/sessions?session_name=${encodeURIComponent(sessionName)}&year=${schedule.season}`);
+        const sessData = await sessRes.json();
+        if (!sessData?.length || !alive) return;
+
+        // Get the latest matching session
+        const latestSess = sessData[sessData.length - 1];
+        const sessionKey = latestSess.session_key;
+
+        // Fetch top 3 results
+        const resultRes = await fetch(`https://api.openf1.org/v1/session_result?session_key=${sessionKey}&position<=3`);
+        const results = await resultRes.json();
+        if (!results?.length || !alive) return;
+
+        // Fetch driver info
+        const driverRes = await fetch(`https://api.openf1.org/v1/drivers?session_key=${sessionKey}`);
+        const drivers = await driverRes.json();
+        if (!alive) return;
+
+        const driverMap = {};
+        drivers.forEach(d => { driverMap[d.driver_number] = d; });
+
+        const top3 = results
+          .sort((a, b) => a.position - b.position)
+          .slice(0, 3)
+          .map(r => {
+            const d = driverMap[r.driver_number] || {};
+            return {
+              pos: r.position,
+              name: d.name_acronym || `#${r.driver_number}`,
+              fullName: d.full_name || d.broadcast_name || `Driver ${r.driver_number}`,
+              team: d.team_name || '',
+              color: d.team_colour ? `#${d.team_colour}` : 'var(--accent)',
+            };
+          });
+
+        if (alive) setPodium(top3);
+      } catch (e) {
+        console.warn('OpenF1 results fetch failed:', e);
+      }
+    })();
+
+    return () => { alive = false; };
+  }, [mode, activeSession, podium, schedule]);
+
+  // ── Render ────────────────────────────────────────
+
+  // Loading state
+  if (mode === 'load') {
+    return (
+      <div className="hero-telemetry-cell">
+        <div className="hero-telemetry-label">
+          <span>F1 · {error ? 'Offline' : 'Loading…'}</span>
+          <span style={{ color: 'var(--fg-mute)' }}>◌</span>
+        </div>
+        <div className="hero-telemetry-value" style={{ fontSize: 14, opacity: .5 }}>
+          {error ? 'schedule unavailable' : 'fetching schedule…'}
+        </div>
       </div>
-      <div className="hero-telemetry-value">{t}</div>
-      <div className="hero-telemetry-sub">Until lights-out · DD:HH:MM:SS</div>
-    </div>
-  );
+    );
+  }
+
+  const raceName = schedule?.raceName || 'Grand Prix';
+
+  // Countdown mode
+  if (mode === 'countdown') {
+    return (
+      <div className="hero-telemetry-cell">
+        <div className="hero-telemetry-label">
+          <span>F1 · {raceName}</span>
+          <span className="f1-next-badge">⏱ {nextSession?.label || 'NEXT'}</span>
+        </div>
+        <div className="hero-telemetry-value f1-countdown-digits">{countdown}</div>
+        <div className="hero-telemetry-sub">
+          Until {nextSession?.label?.toLowerCase() || 'session'} · DD:HH:MM:SS
+        </div>
+      </div>
+    );
+  }
+
+  // Live mode
+  if (mode === 'live') {
+    return (
+      <div className="hero-telemetry-cell f1-cell-live">
+        <div className="hero-telemetry-label">
+          <span>F1 · {raceName}</span>
+          <span className="f1-live-badge">
+            <span className="f1-live-dot"></span> LIVE
+          </span>
+        </div>
+        <div className="hero-telemetry-value" style={{ fontSize: 20 }}>
+          {activeSession?.label} in progress
+        </div>
+        <div className="hero-telemetry-sub">session is live · check your screens</div>
+      </div>
+    );
+  }
+
+  // Results mode
+  if (mode === 'results') {
+    return (
+      <div className="hero-telemetry-cell">
+        <div className="hero-telemetry-label">
+          <span>F1 · {raceName}</span>
+          <span style={{ color: 'var(--fg-mute)' }}>🏁 {activeSession?.label} RESULT</span>
+        </div>
+        {podium ? (
+          <div className="f1-podium">
+            {podium.map(d => (
+              <div key={d.pos} className="f1-podium-row">
+                <span className="f1-podium-pos" data-pos={d.pos}>P{d.pos}</span>
+                <span className="f1-podium-bar" style={{ background: d.color }}></span>
+                <span className="f1-podium-name">{d.name}</span>
+                <span className="f1-podium-team">{d.team}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="hero-telemetry-value" style={{ fontSize: 14, opacity: .5 }}>
+            loading results…
+          </div>
+        )}
+        <div className="hero-telemetry-sub">final classification</div>
+      </div>
+    );
+  }
+
+  return null;
 }
 
 /* ── Spotify Now Playing ───────────────────────── */
@@ -217,13 +425,8 @@ function NowPlayingCell() {
               {data.artist} · {data.album}
             </div>
           </div>
-          {/* Bouncing bars */}
-          <div style={{ display: 'flex', gap: 3, alignItems: 'flex-end', height: 20, flexShrink: 0 }}>
-            {[1,2,3,4,5].map(i => (
-              <div key={i} style={{ width: 3, height: '100%', background: 'var(--accent)', transformOrigin: 'bottom',
-                animation: `nowBar 0.${8+i}s ease-in-out infinite alternate`, animationDelay: `${i*0.1}s` }} />
-            ))}
-          </div>
+          {/* Spinning record */}
+          <RecordPlayer />
         </a>
       )}
 
@@ -237,6 +440,73 @@ function NowPlayingCell() {
         </>
       )}
     </div>
+  );
+}
+
+/* ── Animated Record Player ────────────────────────── */
+function RecordPlayer() {
+  return (
+    <svg
+      viewBox="0 0 48 48"
+      width="44" height="44"
+      style={{ flexShrink: 0, overflow: 'visible' }}
+      aria-hidden="true"
+    >
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to   { transform: rotate(360deg); }
+        }
+        .record-disc {
+          transform-origin: 24px 24px;
+          animation: spin 2s linear infinite;
+        }
+        /* tonearm pivot */
+        .record-arm {
+          transform-origin: 40px 8px;
+          animation: tonearm 2s linear infinite;
+        }
+        @keyframes tonearm {
+          0%,100% { transform: rotate(0deg); }
+          50%      { transform: rotate(-3deg); }
+        }
+      `}</style>
+
+      {/* Spinning disc group */}
+      <g className="record-disc">
+        {/* Vinyl body */}
+        <circle cx="24" cy="24" r="22" fill="#111" />
+        {/* Grooves */}
+        {[18,15,12,9].map(r => (
+          <circle key={r} cx="24" cy="24" r={r} fill="none" stroke="#2a2a2a" strokeWidth="0.8" />
+        ))}
+        {/* Label */}
+        <circle cx="24" cy="24" r="7" fill="var(--accent)" opacity=".9" />
+        {/* Label sheen */}
+        <circle cx="24" cy="24" r="7" fill="url(#labelSheen)" />
+        {/* Spindle hole */}
+        <circle cx="24" cy="24" r="1.5" fill="#060508" />
+        {/* Highlight on vinyl edge */}
+        <circle cx="24" cy="24" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+      </g>
+
+      {/* Tonearm */}
+      <g className="record-arm">
+        <line x1="40" y1="8" x2="30" y2="26" stroke="rgba(200,192,180,0.5)" strokeWidth="1.2" strokeLinecap="round" />
+        {/* Cartridge */}
+        <rect x="28.5" y="25" width="3" height="2" rx="0.5" fill="rgba(200,192,180,0.4)" />
+        {/* Pivot dot */}
+        <circle cx="40" cy="8" r="2" fill="rgba(200,192,180,0.3)" />
+      </g>
+
+      {/* Gradient defs */}
+      <defs>
+        <radialGradient id="labelSheen" cx="40%" cy="35%" r="60%">
+          <stop offset="0%"   stopColor="rgba(255,255,255,0.15)" />
+          <stop offset="100%" stopColor="rgba(0,0,0,0)" />
+        </radialGradient>
+      </defs>
+    </svg>
   );
 }
 
