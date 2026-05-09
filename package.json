@@ -10,5 +10,6 @@
   "author": "",
   "license": "ISC",
   "type": "commonjs",
-  "dependencies": {}
+  "dependencies": {},
+  "engines": { "node": ">=18" }
 }
