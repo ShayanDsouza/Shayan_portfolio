@@ -1,6 +1,7 @@
 {
   "rewrites": [
-    { "source": "/login", "destination": "/login/index.html" },
-    { "source": "/cms",   "destination": "/cms/index.html"   }
+    { "source": "/login",   "destination": "/login/index.html" },
+    { "source": "/cms",     "destination": "/cms/index.html"   },
+    { "source": "/(.*)",    "destination": "/$1"               }
   ]
 }
