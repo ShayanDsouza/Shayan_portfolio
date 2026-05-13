@@ -616,6 +616,121 @@ img { max-width: 100%; }
   letter-spacing: .1em;
 }
 
+/* F1 widget — countdown / live / results */
+.f1-countdown-digits {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .06em;
+  font-weight: 700;
+}
+.f1-next-badge {
+  color: var(--accent);
+  font-weight: 700;
+}
+.f1-live-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #e10600;
+  font-weight: 700;
+}
+.f1-live-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #e10600;
+  animation: f1LivePulse 1.2s ease-in-out infinite;
+}
+@keyframes f1LivePulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 0 0 rgba(225,6,0,.5); }
+  50%      { opacity: .45; box-shadow: 0 0 0 6px rgba(225,6,0,0); }
+}
+.f1-cell-live {
+  border-left: 2px solid #e10600;
+}
+.f1-podium {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 6px;
+}
+.f1-podium-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+.f1-podium-pos {
+  font-size: 11px;
+  font-weight: 700;
+  width: 24px;
+  flex-shrink: 0;
+  color: var(--fg-dim);
+}
+.f1-podium-pos[data-pos="1"] { color: #ffd700; }
+.f1-podium-pos[data-pos="2"] { color: #c0c0c0; }
+.f1-podium-pos[data-pos="3"] { color: #cd7f32; }
+.f1-podium-bar {
+  width: 3px; height: 16px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.f1-podium-name {
+  font-weight: 700;
+  color: var(--comic-bone);
+  flex: 1;
+  min-width: 0;
+}
+.f1-podium-team {
+  font-size: 10px;
+  opacity: .5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Spotify now-playing bouncing bars */
+@keyframes nowBar {
+  0%   { transform: scaleY(.2); }
+  100% { transform: scaleY(1); }
+}
+
+/* HUD F1 mini-countdown */
+.hud-f1 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border-color: rgba(225,6,0,.35);
+}
+.hud-f1-flag { font-size: 13px; }
+.hud-f1-info {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.hud-f1-race {
+  font-size: 9px;
+  opacity: .55;
+  letter-spacing: .15em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.hud-f1-time {
+  font-size: 12px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .04em;
+  color: var(--comic-bone);
+}
+.hud-f1-live {
+  border-color: #e10600;
+  animation: hudLiveGlow 2s ease-in-out infinite;
+}
+@keyframes hudLiveGlow {
+  0%, 100% { box-shadow: 0 0 8px rgba(225,6,0,.15); }
+  50%      { box-shadow: 0 0 14px rgba(225,6,0,.35); }
+}
+
 /* Hero CTA buttons */
 .hero-cta {
   display: block;
@@ -1297,6 +1412,52 @@ img { max-width: 100%; }
 }
 .quest-row:hover .quest-arrow { transform: translateX(6px); }
 
+/* Contract filters */
+.contract-filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 28px;
+}
+.contract-filter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 18px;
+  background: transparent;
+  border: 1px solid rgba(160,136,80,.25);
+  color: var(--fg-dim);
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all .2s;
+  position: relative;
+}
+.contract-filter::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--witcher-gold);
+  opacity: 0;
+  transition: opacity .2s;
+}
+.contract-filter:hover {
+  border-color: var(--witcher-gold);
+  color: var(--fg);
+}
+.contract-filter.active {
+  border-color: var(--witcher-gold);
+  color: var(--witcher-gold);
+  background: rgba(160,136,80,.08);
+}
+.cf-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+.cf-label { position: relative; z-index: 1; }
+
 /* Quest log overlay */
 .quest-log-overlay {
   position: fixed;
@@ -1421,12 +1582,20 @@ img { max-width: 100%; }
   background: transparent;
   border: 1px solid var(--ember);
   color: var(--ember);
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Cinzel', serif;
   font-size: 11px;
   padding: 6px 16px;
   letter-spacing: .3em;
   text-transform: uppercase;
   margin-bottom: 24px;
+}
+.contact-tag {
+  font-family: 'Cinzel', serif;
+  font-size: 14px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  margin-top: 20px;
 }
 .contact-title {
   font-family: 'Cinzel', serif;
@@ -1439,13 +1608,6 @@ img { max-width: 100%; }
 .contact-title .ember {
   color: var(--ember);
   text-shadow: 0 0 40px rgba(160,96,58,.3);
-}
-.contact-tag {
-  font-family: 'Instrument Serif', serif;
-  font-style: italic;
-  font-size: 20px;
-  color: var(--fg-dim);
-  margin-top: 20px;
 }
 
 /* Beacon flame */
