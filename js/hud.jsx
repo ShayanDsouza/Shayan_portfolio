@@ -17,6 +17,7 @@ function HUD() {
         <div className="hud-block hud-biome">
           NOW IN: {currentBiome.label}
         </div>
+        <HudF1Mini />
       </div>
 
       <div className="hud-right">
@@ -43,6 +44,31 @@ function HUD() {
       {/* Quest log overlay */}
       {s.questLogOpen ? <QuestLog /> : null}
     </>
+  );
+}
+
+function HudF1Mini() {
+  const f1 = window.useF1State ? window.useF1State() : null;
+  if (!f1 || f1.mode === 'load') return null;
+
+  const isLive = f1.mode === 'live';
+  const isResults = f1.mode === 'results';
+
+  return (
+    <div className={'hud-block hud-f1' + (isLive ? ' hud-f1-live' : '')}>
+      <span className="hud-f1-flag">{isLive ? '🔴' : isResults ? '🏁' : '🏎️'}</span>
+      <div className="hud-f1-info">
+        <span className="hud-f1-race">{f1.raceName || 'Grand Prix'}</span>
+        <span className="hud-f1-time">
+          {isLive
+            ? `LIVE · ${f1.sessionLabel}`
+            : isResults
+              ? `${f1.sessionLabel} · FINAL`
+              : f1.countdown
+          }
+        </span>
+      </div>
+    </div>
   );
 }
 
