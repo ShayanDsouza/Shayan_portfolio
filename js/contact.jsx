@@ -19,16 +19,16 @@ function Contact() {
     return () => obs.disconnect();
   }, []);
 
-  const email    = getCMS('contact.email',    'shayan.dsouza@mail.utoronto.ca');
-  const github   = getCMS('contact.github',   'https://github.com/');
+  const email = getCMS('contact.email', 'shayan.dsouza@mail.utoronto.ca');
+  const github = getCMS('contact.github', 'https://github.com/');
   const linkedin = getCMS('contact.linkedin', 'https://linkedin.com/');
-  const resume   = getCMS('contact.resume',   '#');
+  const resume = getCMS('contact.resume', '#');
 
   const placeholders = {
-    hire:    { topic: 'Frontend internship for fall 2026', msg: "Hey, we're hiring a frontend intern and your work caught our eye..." },
-    project: { topic: 'Build me an artist portfolio',      msg: "I'm a [whatever] looking for a portfolio site that..." },
-    chat:    { topic: 'Just saying hi',                    msg: "No agenda. Liked the character sheet." },
-    f1:      { topic: 'F1 take exchange',                  msg: "Lando 2026 WDC. Discuss." },
+    hire: { topic: 'Frontend internship for fall 2026', msg: "Hey, we're hiring a frontend intern and your work caught our eye..." },
+    project: { topic: 'Build me an artist portfolio', msg: "I'm a XYZ looking for a portfolio site that..." },
+    chat: { topic: 'Just saying hi', msg: "No agenda. Liked the character sheet." },
+    f1: { topic: 'F1 take exchange', msg: "Lando 2026 WDC. Discuss." },
   };
   const ph = placeholders[choice];
 
@@ -48,15 +48,18 @@ function Contact() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          name:    fd.get('name'),
-          email:   fd.get('email'),
-          topic:   fd.get('topic'),
+          name: fd.get('name'),
+          email: fd.get('email'),
+          topic: fd.get('topic'),
           message: fd.get('message'),
         }),
       });
       const data = await res.json();
       if (data.ok) {
         setSent(true);
+        if (window.soundManager) {
+          window.soundManager.play('beacon_ignite');
+        }
       } else {
         setErrors({ form: data.error || 'Something went wrong. Try the direct email link.' });
       }
@@ -73,12 +76,12 @@ function Contact() {
         <svg viewBox="0 0 1600 600" preserveAspectRatio="none">
           <defs>
             <linearGradient id="mtnGrad" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0%"   stopColor="#1a1410" stopOpacity="0"/>
-              <stop offset="100%" stopColor="#0a0807" stopOpacity="1"/>
+              <stop offset="0%" stopColor="#1a1410" stopOpacity="0" />
+              <stop offset="100%" stopColor="#0a0807" stopOpacity="1" />
             </linearGradient>
           </defs>
-          <path d="M0,600 L0,360 L120,260 L220,310 L340,200 L480,300 L580,240 L720,330 L860,210 L980,290 L1100,250 L1240,330 L1380,240 L1500,300 L1600,260 L1600,600 Z" fill="url(#mtnGrad)" opacity=".85"/>
-          <path d="M0,600 L0,420 L160,360 L300,400 L460,330 L620,400 L780,350 L920,420 L1080,360 L1240,420 L1400,370 L1600,410 L1600,600 Z" fill="#070504"/>
+          <path d="M0,600 L0,360 L120,260 L220,310 L340,200 L480,300 L580,240 L720,330 L860,210 L980,290 L1100,250 L1240,330 L1380,240 L1500,300 L1600,260 L1600,600 Z" fill="url(#mtnGrad)" opacity=".85" />
+          <path d="M0,600 L0,420 L160,360 L300,400 L460,330 L620,400 L780,350 L920,420 L1080,360 L1240,420 L1400,370 L1600,410 L1600,600 Z" fill="#070504" />
         </svg>
       </div>
       <div className="beacon-trails" aria-hidden="true">
@@ -90,16 +93,19 @@ function Contact() {
       <div className="contact-container">
         <div className="contact-header">
           <div className="label">— THE LAST WAYPOINT —</div>
-          <h2 className="contact-title">LIGHT<br/><span className="ember">THE BEACON</span></h2>
-          <p className="contact-tag">Send the signal. I'll see it.</p>
+          <h2 className="contact-title">LIGHT<br /><span className="ember">THE BEACON</span></h2>
+          <p className="contact-tag">Send the signal. Shayan will answer.</p>
         </div>
 
         <div className="dialog-grid">
           <div>
             <div className="dialog-choices-label">— CALLS FOR AID —</div>
             <div className="dialog-choices">
-              {[['hire','A','Hire me — internship / contract'],['project','B','Project quote — freelance build'],['chat','C','Just chat — say hi, no agenda'],['f1','D','F1 takes — exchange opinions']].map(([id, key, text]) => (
-                <button key={id} className={'dialog-choice' + (choice === id ? ' active' : '')} onClick={() => setChoice(id)}>
+              {[['hire', 'A', 'Hire me — internship / contract'], ['project', 'B', 'Project quote — freelance build'], ['chat', 'X', 'Just chat — say hi, no agenda'], ['f1', 'Y', 'F1 takes — exchange opinions']].map(([id, key, text]) => (
+                <button key={id} className={'dialog-choice' + (choice === id ? ' active' : '')} onClick={() => {
+                  setChoice(id);
+                  if (window.soundManager) window.soundManager.play('stone_hover');
+                }}>
                   <span className="key">{key}</span><span className="text">{text}</span>
                 </button>
               ))}
@@ -182,8 +188,8 @@ function BeaconFlame({ lit, big }) {
   return (
     <span className={'beacon-flame' + (lit ? ' lit' : '') + (big ? ' big' : '')} aria-hidden="true">
       <svg viewBox="0 0 24 32">
-        <path d="M12 2 Q8 10 10 16 Q6 20 8 26 Q12 30 12 30 Q12 30 16 26 Q18 20 14 16 Q16 10 12 2" fill="currentColor"/>
-        <path d="M12 12 Q10 18 12 24 Q14 18 12 12" fill="#ffeac2" opacity=".9"/>
+        <path d="M12 2 Q8 10 10 16 Q6 20 8 26 Q12 30 12 30 Q12 30 16 26 Q18 20 14 16 Q16 10 12 2" fill="currentColor" />
+        <path d="M12 12 Q10 18 12 24 Q14 18 12 12" fill="#ffeac2" opacity=".9" />
       </svg>
     </span>
   );

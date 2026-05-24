@@ -36,9 +36,14 @@ function xpForLevel(lvl) { return 200 + (lvl - 1) * 250; }
 
 function addXP(amount) {
   state.xp += amount;
+  let leveledUp = false;
   while (state.xp >= xpForLevel(state.level)) {
     state.xp -= xpForLevel(state.level);
     state.level++;
+    leveledUp = true;
+  }
+  if (leveledUp && window.soundManager) {
+    window.soundManager.play('level_up');
   }
   emit();
 }

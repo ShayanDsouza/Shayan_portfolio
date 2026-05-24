@@ -119,7 +119,7 @@ function Hero() {
 // Session duration estimates (minutes) for detecting "live" windows
 const SESSION_DURATIONS = {
   FirstPractice: 60, SecondPractice: 60, ThirdPractice: 60,
-  SprintQualifying: 45, Sprint: 40, Qualifying: 60, Race: 120,
+  SprintQualifying: 45, Sprint: 40, Qualifying: 90, Race: 180,
 };
 
 const SESSION_LABELS = {
@@ -145,6 +145,30 @@ function F1Cell() {
   // 1. Fetch next race schedule from Jolpica-F1
   React.useEffect(() => {
     let alive = true;
+    
+    // Check if simulating live mode via query parameter: ?f1test=live
+    const urlParams = new URLSearchParams(window.location.search);
+    const isTesting = urlParams.get('f1test') === 'live';
+    
+    if (isTesting) {
+      const timer = setTimeout(() => {
+        if (!alive) return;
+        setSchedule({
+          raceName: 'Simulation Grand Prix',
+          round: '1',
+          season: '2026',
+          sessions: [
+            { key: 'Race', label: 'Race', start: new Date(Date.now() - 3600000), end: new Date(Date.now() + 3600000) }
+          ]
+        });
+        setF1State({ raceName: 'Simulation Grand Prix' });
+      }, 500);
+      return () => {
+        alive = false;
+        clearTimeout(timer);
+      };
+    }
+
     (async () => {
       try {
         const res = await fetch('https://api.jolpi.ca/ergast/f1/current/next.json');
@@ -160,7 +184,9 @@ function F1Cell() {
             const d = k === 'Race' ? race.date : race[k]?.date;
             const t = k === 'Race' ? race.time : race[k]?.time;
             if (!d || !t) return null;
-            const start = new Date(`${d}T${t}`);
+            // Enforce UTC parsing by ensuring the time string ends with 'Z'
+            const timeStr = t.endsWith('Z') ? t : `${t}Z`;
+            const start = new Date(`${d}T${timeStr}`);
             const dur = SESSION_DURATIONS[k] || 120;
             const end = new Date(start.getTime() + dur * 60000);
             return { key: k, label: SESSION_LABELS[k], start, end };
@@ -189,7 +215,7 @@ function F1Cell() {
       // Find if a session is currently live
       const live = schedule.sessions.find(s => now >= s.start && now <= s.end);
       if (live) {
-        setMode('live');
+        setMode(prev => { if (prev !== 'live') setPodium(null); return 'live'; });
         setActiveSession(live);
         setNextSession(null);
         setF1State({ mode: 'live', sessionLabel: live.label });
@@ -199,7 +225,7 @@ function F1Cell() {
       // Find next upcoming session
       const upcoming = schedule.sessions.find(s => now < s.start);
       if (upcoming) {
-        setMode('countdown');
+        setMode(prev => { if (prev !== 'countdown') setPodium(null); return 'countdown'; });
         setNextSession(upcoming);
         setActiveSession(null);
         const diff = upcoming.start - now;
@@ -217,7 +243,7 @@ function F1Cell() {
       // All sessions past — check if the last session just ended (show results)
       const lastSession = schedule.sessions[schedule.sessions.length - 1];
       if (lastSession && now > lastSession.end) {
-        setMode('results');
+        setMode(prev => { if (prev !== 'results') setPodium(null); return 'results'; });
         setActiveSession(lastSession);
         setF1State({ mode: 'results', sessionLabel: lastSession.label });
       }
@@ -228,27 +254,34 @@ function F1Cell() {
     return () => clearInterval(iv);
   }, [schedule]);
 
-  // 3. Fetch top 3 results from OpenF1 when mode switches to 'results'
+  // 3. Fetch top 3 results/live standings from OpenF1
   React.useEffect(() => {
-    if (mode !== 'results' || !activeSession || podium) return;
+    if ((mode !== 'results' && mode !== 'live') || !activeSession) return;
     let alive = true;
+    let timer = null;
 
-    (async () => {
+    const fetchData = async () => {
       try {
-        // Find the OpenF1 session key for the latest session
+        const urlParams = new URLSearchParams(window.location.search);
+        const isTesting = urlParams.get('f1test') === 'live';
+        
+        if (mode === 'live' && isTesting) {
+          const mockTop3 = [
+            { pos: 1, name: 'NOR', fullName: 'Lando Norris', team: 'McLaren', color: '#ff8700' },
+            { pos: 2, name: 'LEC', fullName: 'Charles Leclerc', team: 'Ferrari', color: '#dc0000' },
+            { pos: 3, name: 'VER', fullName: 'Max Verstappen', team: 'Red Bull Racing', color: '#0600ef' }
+          ];
+          if (alive) setPodium(mockTop3);
+          return;
+        }
+
         const sessionName = OPENF1_SESSION_MAP[activeSession.key] || 'Race';
         const sessRes = await fetch(`https://api.openf1.org/v1/sessions?session_name=${encodeURIComponent(sessionName)}&year=${schedule.season}`);
         const sessData = await sessRes.json();
         if (!sessData?.length || !alive) return;
 
-        // Get the latest matching session
         const latestSess = sessData[sessData.length - 1];
         const sessionKey = latestSess.session_key;
-
-        // Fetch top 3 results
-        const resultRes = await fetch(`https://api.openf1.org/v1/session_result?session_key=${sessionKey}&position<=3`);
-        const results = await resultRes.json();
-        if (!results?.length || !alive) return;
 
         // Fetch driver info
         const driverRes = await fetch(`https://api.openf1.org/v1/drivers?session_key=${sessionKey}`);
@@ -258,28 +291,75 @@ function F1Cell() {
         const driverMap = {};
         drivers.forEach(d => { driverMap[d.driver_number] = d; });
 
-        const top3 = results
-          .sort((a, b) => a.position - b.position)
-          .slice(0, 3)
-          .map(r => {
-            const d = driverMap[r.driver_number] || {};
-            return {
-              pos: r.position,
-              name: d.name_acronym || `#${r.driver_number}`,
-              fullName: d.full_name || d.broadcast_name || `Driver ${r.driver_number}`,
-              team: d.team_name || '',
-              color: d.team_colour ? `#${d.team_colour}` : 'var(--accent)',
-            };
+        let top3 = [];
+
+        if (mode === 'results') {
+          // Fetch final top 3 classification
+          const resultRes = await fetch(`https://api.openf1.org/v1/session_result?session_key=${sessionKey}&position<=3`);
+          const results = await resultRes.json();
+          if (!results?.length || !alive) return;
+
+          top3 = results
+            .sort((a, b) => a.position - b.position)
+            .slice(0, 3)
+            .map(r => {
+              const d = driverMap[r.driver_number] || {};
+              return {
+                pos: r.position,
+                name: d.name_acronym || `#${r.driver_number}`,
+                fullName: d.full_name || d.broadcast_name || `Driver ${r.driver_number}`,
+                team: d.team_name || '',
+                color: d.team_colour ? `#${d.team_colour}` : 'var(--accent)',
+              };
+            });
+        } else if (mode === 'live') {
+          // Fetch live position changes
+          const posRes = await fetch(`https://api.openf1.org/v1/position?session_key=${sessionKey}`);
+          const posData = await posRes.json();
+          if (!posData?.length || !alive) return;
+
+          // Group by driver and get latest record
+          const latestByDriver = {};
+          posData.forEach(p => {
+            const num = p.driver_number;
+            if (!latestByDriver[num] || new Date(p.date) > new Date(latestByDriver[num].date)) {
+              latestByDriver[num] = p;
+            }
           });
+
+          top3 = Object.values(latestByDriver)
+            .sort((a, b) => a.position - b.position)
+            .slice(0, 3)
+            .map(p => {
+              const d = driverMap[p.driver_number] || {};
+              return {
+                pos: p.position,
+                name: d.name_acronym || `#${p.driver_number}`,
+                fullName: d.full_name || d.broadcast_name || `Driver ${p.driver_number}`,
+                team: d.team_name || '',
+                color: d.team_colour ? `#${d.team_colour}` : 'var(--accent)',
+              };
+            });
+        }
 
         if (alive) setPodium(top3);
       } catch (e) {
-        console.warn('OpenF1 results fetch failed:', e);
+        console.warn('OpenF1 live/results fetch failed:', e);
       }
-    })();
+    };
 
-    return () => { alive = false; };
-  }, [mode, activeSession, podium, schedule]);
+    fetchData();
+
+    // If live, poll every 30 seconds for real-time standing updates
+    if (mode === 'live') {
+      timer = setInterval(fetchData, 30000);
+    }
+
+    return () => {
+      alive = false;
+      if (timer) clearInterval(timer);
+    };
+  }, [mode, activeSession, schedule]);
 
   // ── Render ────────────────────────────────────────
 
@@ -323,13 +403,28 @@ function F1Cell() {
         <div className="hero-telemetry-label">
           <span>F1 · {raceName}</span>
           <span className="f1-live-badge">
-            <span className="f1-live-dot"></span> LIVE
+            <span className="f1-live-dot"></span> LIVE · {activeSession?.label?.toUpperCase()}
           </span>
         </div>
-        <div className="hero-telemetry-value" style={{ fontSize: 20 }}>
-          {activeSession?.label} in progress
+        {podium && podium.length > 0 ? (
+          <div className="f1-podium">
+            {podium.map(d => (
+              <div key={d.pos} className="f1-podium-row">
+                <span className="f1-podium-pos" data-pos={d.pos}>P{d.pos}</span>
+                <span className="f1-podium-bar" style={{ background: d.color }}></span>
+                <span className="f1-podium-name">{d.name}</span>
+                <span className="f1-podium-team">{d.team}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="hero-telemetry-value" style={{ fontSize: 20 }}>
+            {activeSession?.label} in progress
+          </div>
+        )}
+        <div className="hero-telemetry-sub">
+          {podium && podium.length > 0 ? 'current standings · updating live' : 'session is live · check your screens'}
         </div>
-        <div className="hero-telemetry-sub">session is live · check your screens</div>
       </div>
     );
   }

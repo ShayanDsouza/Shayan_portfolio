@@ -14,6 +14,7 @@ if (fs.existsSync(envPath)) {
 
 const PORT = process.env.PORT || 3000;
 const ROOT = __dirname;
+const MAX_JSON_BODY_BYTES = 64 * 1024;
 
 const MIME = {
   '.html': 'text/html; charset=utf-8',
@@ -31,6 +32,7 @@ const MIME = {
   '.woff2':'font/woff2',
   '.ttf':  'font/ttf',
   '.webp': 'image/webp',
+  '.mp3':  'audio/mpeg',
 };
 
 // ── API: /api/now-playing ──────────────────────────────────────────────────
@@ -82,6 +84,119 @@ async function handleNowPlaying(res) {
     return json({ isPlaying: false });
   }
 }
+// ── API: /api/generate-sound ──────────────────────────────────────────────
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    let raw = '';
+    let size = 0;
+    let settled = false;
+
+    const cleanup = () => {
+      req.off('data', onData);
+      req.off('end', onEnd);
+      req.off('error', onError);
+    };
+
+    const finish = (fn, value) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      fn(value);
+    };
+
+    const onData = chunk => {
+      size += chunk.length;
+      if (size > MAX_JSON_BODY_BYTES) {
+        req.resume();
+        finish(reject, { status: 413, body: { ok: false, error: 'Request body too large' } });
+        return;
+      }
+      raw += chunk;
+    };
+
+    const onEnd = () => {
+      if (!raw) {
+        finish(resolve, {});
+        return;
+      }
+
+      try {
+        finish(resolve, JSON.parse(raw));
+      } catch {
+        finish(resolve, {});
+      }
+    };
+
+    const onError = () => {
+      finish(reject, { status: 400, body: { ok: false, error: 'Invalid request body' } });
+    };
+
+    req.on('data', onData);
+    req.on('end', onEnd);
+    req.on('error', onError);
+  });
+}
+
+async function handleGenerateSound(req, res) {
+  const ELEVENLABS_API_KEY = process.env.ELEVENLABS_API_KEY;
+
+  const json = (status, data) => {
+    res.writeHead(status, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' });
+    res.end(JSON.stringify(data));
+  };
+
+  if (!ELEVENLABS_API_KEY) {
+    return json(500, { ok: false, error: 'ElevenLabs API key is not configured' });
+  }
+
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch (err) {
+    return json(err.status || 400, err.body || { ok: false, error: 'Invalid request body' });
+  }
+
+  const { prompt, duration } = body;
+  if (!prompt?.trim()) {
+    return json(400, { ok: false, error: 'Prompt is required' });
+  }
+
+  try {
+    const durationSeconds = duration ? parseFloat(duration) : undefined;
+    const response = await fetch('https://api.elevenlabs.io/v1/sound-generation', {
+      method: 'POST',
+      headers: {
+        'xi-api-key': ELEVENLABS_API_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        text: prompt.trim(),
+        duration_seconds: durationSeconds,
+        prompt_influence: 0.8
+      })
+    });
+
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('ElevenLabs local API error:', errText);
+      return json(response.status, { ok: false, error: `ElevenLabs failed: ${errText}` });
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const buffer = Buffer.from(arrayBuffer);
+
+    res.writeHead(200, {
+      'Content-Type': 'audio/mpeg',
+      'Content-Length': buffer.length,
+      'Cache-Control': 'no-store'
+    });
+    res.end(buffer);
+  } catch (err) {
+    console.error('Local generate sound error:', err.message);
+    return json(500, { ok: false, error: 'Server error' });
+  }
+}
+
 // ── API: /api/contact ──────────────────────────────────────────────────────
 async function handleContact(req, res) {
   const RESEND_API_KEY = process.env.RESEND_API_KEY;
@@ -96,14 +211,12 @@ async function handleContact(req, res) {
     return json(500, { ok: false, error: 'Email service not configured' });
   }
 
-  // Parse JSON body from raw http request
-  const body = await new Promise((resolve) => {
-    let raw = '';
-    req.on('data', chunk => raw += chunk);
-    req.on('end', () => {
-      try { resolve(JSON.parse(raw)); } catch { resolve({}); }
-    });
-  });
+  let body;
+  try {
+    body = await readJsonBody(req);
+  } catch (err) {
+    return json(err.status || 400, err.body || { ok: false, error: 'Invalid request body' });
+  }
 
   const { name, email, topic, message } = body;
   if (!name?.trim())  return json(400, { ok: false, error: 'Name is required' });
@@ -161,6 +274,10 @@ const server = http.createServer(async (req, res) => {
 
   if (urlPath === '/api/contact' && req.method === 'POST') {
     return handleContact(req, res);
+  }
+
+  if (urlPath === '/api/generate-sound' && req.method === 'POST') {
+    return handleGenerateSound(req, res);
   }
 
   // Static files

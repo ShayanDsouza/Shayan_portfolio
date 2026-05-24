@@ -447,10 +447,12 @@ img { max-width: 100%; }
   position: relative;
   background: #080608;
   background-image:
+    linear-gradient(to top, #1a1612, transparent 200px),
+    radial-gradient(ellipse at 50% 100%, rgba(255,122,42,.15) 0%, transparent 60%),
     radial-gradient(ellipse at 20% 0%, rgba(138,21,32,.2) 0%, transparent 50%),
     radial-gradient(ellipse at 85% 100%, rgba(16,20,26,.5) 0%, transparent 50%),
     radial-gradient(circle, rgba(160,144,128,.04) 1px, transparent 1.5px);
-  background-size: auto, auto, 6px 6px;
+  background-size: 100% 100%, 100% 100%, auto, auto, 6px 6px;
   color: var(--comic-bone);
   overflow: hidden;
   padding: 100px 40px 60px;
@@ -700,7 +702,25 @@ img { max-width: 100%; }
   gap: 10px;
   border-color: rgba(225,6,0,.35);
 }
-.hud-f1-flag { font-size: 13px; }
+.hud-f1-flag {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.hud-f1-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--accent);
+  display: block;
+}
+.hud-f1-icon.live-pulse {
+  color: #e10600;
+  animation: hudF1Signal 1.5s infinite ease-in-out;
+}
+@keyframes hudF1Signal {
+  0%, 100% { opacity: 0.55; transform: scale(0.96); }
+  50% { opacity: 1; transform: scale(1.05); }
+}
 .hud-f1-info {
   display: flex;
   flex-direction: column;
@@ -781,6 +801,10 @@ img { max-width: 100%; }
 .world-about {
   background: #1a1612;
   background-image:
+    linear-gradient(to bottom, #080608, transparent 200px),
+    linear-gradient(to top, #15110a, transparent 200px),
+    radial-gradient(ellipse at 50% 0%, rgba(138,21,32,.22) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(201,164,73,.14) 0%, transparent 60%),
     radial-gradient(ellipse at 20% 0%, rgba(255,122,42,.18) 0%, transparent 50%),
     radial-gradient(ellipse at 80% 100%, rgba(255,122,42,.1) 0%, transparent 50%);
   color: var(--rdr-paper);
@@ -1279,6 +1303,10 @@ img { max-width: 100%; }
 /* === Witcher Projects === */
 .world-projects {
   background:
+    linear-gradient(to bottom, #1a1612, transparent 200px),
+    linear-gradient(to top, #080608, transparent 200px),
+    radial-gradient(ellipse at 50% 0%, rgba(255,122,42,.18) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 100%, rgba(160,96,58,.22) 0%, transparent 60%),
     radial-gradient(ellipse at center, #2a2218 0%, #15110a 100%);
   color: var(--witcher-paper);
   padding: 120px 40px;
@@ -1350,6 +1378,11 @@ img { max-width: 100%; }
   text-decoration: none;
   color: inherit;
   position: relative;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
 }
 .quest-row::before {
   content: '';
@@ -1524,6 +1557,9 @@ img { max-width: 100%; }
 .world-contact {
   background: #080608;
   background-image:
+    linear-gradient(to bottom, #15110a, transparent 200px),
+    linear-gradient(to top, #050505, transparent 150px),
+    radial-gradient(ellipse at 50% 0%, rgba(201,164,73,.18) 0%, transparent 50%),
     radial-gradient(ellipse at 20% 80%, rgba(160,96,58,.12) 0%, transparent 40%),
     radial-gradient(ellipse at 80% 20%, rgba(30,20,10,.6) 0%, transparent 40%);
   color: #f4f0e8;
@@ -1606,8 +1642,8 @@ img { max-width: 100%; }
   text-transform: uppercase;
 }
 .contact-title .ember {
-  color: var(--ember);
-  text-shadow: 0 0 40px rgba(160,96,58,.3);
+  color: var(--fg);
+  text-shadow: none;
 }
 
 /* Beacon flame */
@@ -1643,7 +1679,7 @@ img { max-width: 100%; }
   gap: 12px;
 }
 .dialog-choices-label {
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Cinzel', serif;
   font-size: 10px;
   letter-spacing: .3em;
   text-transform: uppercase;
@@ -1677,7 +1713,7 @@ img { max-width: 100%; }
   border: 1px solid rgba(0,0,0,.3);
   flex-shrink: 0;
 }
-.dialog-choice .text { font-family: 'Instrument Serif', serif; font-size: 18px; }
+.dialog-choice .text { font-family: 'Cinzel', serif; font-size: 16px; }
 .dialog-choice.active { border-color: var(--ember); background: rgba(160,96,58,.1); }
 
 .contact-form {
@@ -1724,7 +1760,7 @@ img { max-width: 100%; }
 .form-field { position: relative; }
 .form-field label {
   display: block;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Cinzel', serif;
   font-size: 9px;
   letter-spacing: .25em;
   text-transform: uppercase;
@@ -1734,6 +1770,7 @@ img { max-width: 100%; }
 .form-field input,
 .form-field textarea {
   width: 100%;
+  font-family: 'Cinzel', serif;
   background: rgba(255,255,255,.04);
   border: 1px solid rgba(255,255,255,.15);
   color: #fff;
@@ -1748,9 +1785,9 @@ img { max-width: 100%; }
 .form-field textarea {
   resize: vertical;
   min-height: 120px;
-  font-family: 'Instrument Serif', serif;
-  font-size: 16px;
-  line-height: 1.4;
+  font-family: 'Cinzel', serif;
+  font-size: 15px;
+  line-height: 1.5;
 }
 .form-field input::placeholder, .form-field textarea::placeholder { color: rgba(255,255,255,.25); }
 .form-error {
@@ -1879,10 +1916,299 @@ img { max-width: 100%; }
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
-  border-top: 1px solid var(--line);
+  /* Removed border-top divider line for seamless blend */
   position: relative;
   z-index: 3;
 }
+
+/* =============================================
+   PROJECT DETAIL OVERLAY
+   ============================================= */
+
+.pdetail-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 3000;
+  background: #060508;
+  overflow-y: auto;
+  animation: pdetailIn .42s cubic-bezier(.16,1,.3,1);
+}
+@keyframes pdetailIn {
+  from { opacity: 0; transform: translateY(36px); }
+  to   { opacity: 1; transform: translateY(0);    }
+}
+
+/* Mountain silhouette fixed to bottom */
+.pdetail-mountains {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  height: 45%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* Back button */
+.pdetail-back {
+  position: fixed;
+  top: 24px; left: 28px;
+  z-index: 10;
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: .28em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  background: rgba(6,5,8,.88);
+  border: 1px solid rgba(255,255,255,.13);
+  padding: 10px 20px;
+  cursor: pointer;
+  transition: border-color .2s, color .2s;
+  backdrop-filter: blur(12px);
+}
+.pdetail-back:hover { border-color: var(--witcher-gold); color: var(--witcher-gold); }
+
+/* ── Body grid ── */
+.pdetail-body {
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 120px 64px 90px;
+}
+
+/* ── Media column ── */
+.pdetail-media {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+
+/* ── Fan spread ── */
+.pdetail-fan {
+  position: relative;
+  width: 380px;
+  height: 510px;
+  flex-shrink: 0;
+}
+.pdetail-fan-small {
+  width: 320px;
+  height: 200px;
+}
+
+/* Card sizing/position/hover are all computed inline in project-detail.jsx */
+.pdetail-card { border-radius: 18px; overflow: hidden; }
+
+/* Card image fill */
+.pdetail-card-img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ── Card inner content (placeholder cards) ── */
+.pdetail-card-inner {
+  width: 100%; height: 100%;
+  padding: 22px 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.pdetail-card-main-inner {
+  padding: 26px 22px;
+}
+.pdetail-card-glyph {
+  font-family: 'Cinzel', serif;
+  font-size: 78px;
+  font-weight: 700;
+  color: rgba(255,255,255,.08);
+  line-height: 1;
+}
+.pdetail-card-glyph-dark {
+  font-family: 'Cinzel', serif;
+  font-size: 62px;
+  font-weight: 700;
+  color: rgba(42,31,16,.13);
+  line-height: 1;
+  text-align: right;
+}
+.pdetail-card-micro {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: .35em;
+  color: rgba(255,255,255,.38);
+  text-transform: uppercase;
+}
+.pdetail-card-micro.dark { color: rgba(42,31,16,.5); }
+.pdetail-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  margin: 12px 0;
+}
+.pdetail-card-list-item {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: rgba(255,255,255,.68);
+  border-bottom: 1px solid rgba(255,255,255,.1);
+  padding-bottom: 6px;
+}
+.pdetail-card-tag-label {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 11px;
+  color: rgba(255,255,255,.32);
+}
+.pdetail-card-title-main {
+  font-family: 'Cinzel', serif;
+  font-size: 19px;
+  font-weight: 700;
+  color: #1a0f08;
+  line-height: 1.2;
+  margin-bottom: 8px;
+}
+.pdetail-card-subtitle-main {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: rgba(42,31,16,.62);
+  line-height: 1.4;
+}
+.pdetail-card-desc-snippet {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 13px;
+  color: rgba(255,255,255,.62);
+  line-height: 1.6;
+  flex: 1;
+}
+
+/* ── Video wrapper ── */
+.pdetail-video-wrap {
+  width: 100%;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 28px 80px rgba(0,0,0,.75);
+  border: 1px solid rgba(255,255,255,.09);
+}
+.pdetail-video-wrap video {
+  width: 100%;
+  display: block;
+}
+
+/* ── Info panel ── */
+.pdetail-info {
+  display: flex;
+  flex-direction: column;
+}
+.pdetail-eyebrow {
+  font-family: 'Cinzel', serif;
+  font-size: 10px;
+  letter-spacing: .38em;
+  color: var(--witcher-gold);
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.pdetail-title {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(28px, 4vw, 58px);
+  font-weight: 700;
+  color: var(--fg);
+  line-height: 1.05;
+  margin-bottom: 10px;
+}
+.pdetail-subtitle {
+  font-family: 'Instrument Serif', serif;
+  font-style: italic;
+  font-size: 18px;
+  color: var(--fg-dim);
+  margin-bottom: 32px;
+}
+.pdetail-links {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 36px;
+}
+.pdetail-btn {
+  font-family: 'Cinzel', serif;
+  font-size: 11px;
+  letter-spacing: .22em;
+  padding: 13px 28px;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition: background .2s, color .2s, border-color .2s;
+  display: inline-block;
+  cursor: pointer;
+}
+.pdetail-btn-github {
+  background: var(--witcher-gold);
+  color: #0a0808;
+  border: 1px solid var(--witcher-gold);
+}
+.pdetail-btn-github:hover { background: transparent; color: var(--witcher-gold); }
+.pdetail-btn-live {
+  background: transparent;
+  color: var(--fg);
+  border: 1px solid rgba(255,255,255,.22);
+}
+.pdetail-btn-live:hover { border-color: var(--fg); }
+.pdetail-no-link {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--fg-mute);
+  letter-spacing: .15em;
+  margin-bottom: 36px;
+}
+.pdetail-section-head {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin: 28px 0 14px;
+}
+.pdetail-section-head::before,
+.pdetail-section-head::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(138,122,90,.22);
+}
+.pdetail-section-head span {
+  font-family: 'Cinzel', serif;
+  font-size: 9px;
+  letter-spacing: .42em;
+  color: var(--witcher-gold);
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+.pdetail-stack {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pdetail-stack-tag {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--fg-dim);
+  border: 1px solid rgba(255,255,255,.12);
+  padding: 5px 13px;
+  letter-spacing: .05em;
+}
+.pdetail-desc {
+  font-family: 'Instrument Serif', serif;
+  font-size: 18px;
+  line-height: 1.78;
+  color: var(--fg-dim);
+}
+
+/* quest-row base link reset (used as <a> tag) */
+.quest-row { cursor: pointer; text-decoration: none; color: inherit; }
+.quest-row--no-link { cursor: default; }
 
 /* =============================================
    RESPONSIVE — mobile-first breakpoints
@@ -1991,6 +2317,15 @@ img { max-width: 100%; }
   .quest-name .small { font-size: 10px; }
   .quest-log { padding: 24px 16px; }
 
+  /* ── Project Detail ── */
+  .pdetail-body {
+    grid-template-columns: 1fr;
+    padding: 88px 24px 64px;
+    gap: 56px;
+    min-height: auto;
+  }
+  .pdetail-title { font-size: clamp(26px, 7vw, 44px); }
+
   /* ── Contact ── */
   .signal-tower { grid-template-columns: repeat(2, 1fr); }
   .dialog-choice { padding: 12px 14px; }
@@ -2017,4 +2352,24 @@ img { max-width: 100%; }
   .signal-tower { grid-template-columns: 1fr 1fr; }
   .hero-cta { font-size: 15px; padding: 12px; }
   .comic-name { font-size: clamp(48px, 15vw, 80px); }
+}
+
+/* Witcher Audio System Button */
+.hud-audio-btn {
+  background: rgba(0,0,0,.7);
+  border: 1px solid rgba(255,255,255,.15);
+  color: var(--fg);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: all .2s;
+  display: inline-flex;
+  align-items: center;
+}
+.hud-audio-btn:hover {
+  border-color: var(--witcher-gold);
+  color: var(--witcher-gold);
 }

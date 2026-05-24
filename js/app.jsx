@@ -23,12 +23,19 @@ function App() {
     loop();
     const onEnter = () => cursor.classList.add('hover');
     const onLeave = () => cursor.classList.remove('hover');
+    const playHover = () => {
+      if (window.soundManager) {
+        window.soundManager.play('click_ui');
+      }
+    };
     const wire = () => {
       document.querySelectorAll('a, button, input, textarea, .class-card, .quest-row, .comic-panel, .polaroid, .signal-card, .dialog-choice, .minimap-node').forEach(el => {
         el.removeEventListener('mouseenter', onEnter);
         el.removeEventListener('mouseleave', onLeave);
+        el.removeEventListener('mouseenter', playHover);
         el.addEventListener('mouseenter', onEnter);
         el.addEventListener('mouseleave', onLeave);
+        el.addEventListener('mouseenter', playHover);
       });
     };
     wire();
@@ -65,6 +72,11 @@ function App() {
   React.useEffect(() => {
     if (!booted) return;
     const prev = lastBiomeRef.current;
+    if (state.biome !== prev) {
+      if (window.soundManager) {
+        window.soundManager.transitionToBiome(state.biome);
+      }
+    }
     if (prev && state.biome !== prev && state.biome !== 'BOOT') {
       const map = {
         ABOUT:    { kind: 'chapter', label: 'Chapter II',     sub: 'The Frontier · Toronto, ON' },
@@ -91,7 +103,13 @@ function App() {
   }, []);
 
   if (!booted) {
-    return <BootScreen onStart={() => { setBooted(true); window.gameStore.setBootDone(true); }} />;
+    return <BootScreen onStart={() => {
+      setBooted(true);
+      window.gameStore.setBootDone(true);
+      if (window.soundManager) {
+        window.soundManager.transitionToBiome(window.gameStore.snapshot().biome);
+      }
+    }} />;
   }
 
   return (
