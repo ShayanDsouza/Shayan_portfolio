@@ -21,6 +21,7 @@ const FILTERS = [
 function Projects() {
   const ref = React.useRef(null);
   const [filter, setFilter] = React.useState('all');
+  const [selectedQuest, setSelectedQuest] = React.useState(null);
 
   React.useEffect(() => {
     const obs = new IntersectionObserver(([e]) => {
@@ -67,7 +68,7 @@ function Projects() {
 
           <div className="quest-list">
             {quests.map((q, i) => (
-              <QuestRow key={q.name} q={q} i={i} />
+              <QuestRow key={q.name} q={q} i={i} onSelect={setSelectedQuest} />
             ))}
           </div>
 
@@ -76,17 +77,17 @@ function Projects() {
           </div>
         </div>
       </section>
+      {selectedQuest ? <ProjectDetail quest={selectedQuest} onClose={() => setSelectedQuest(null)} /> : null}
     </>
   );
 }
 
-function QuestRow({ q, i }) {
+function QuestRow({ q, i, onSelect }) {
   const num      = ['I','II','III','IV','V','VI','VII','VIII','IX','X'][i] || (i + 1);
   const stackArr = Array.isArray(q.stack) ? q.stack : (q.stack || '').split(',').map(s => s.trim()).filter(Boolean);
-  const hasLink  = q.link && q.link !== '#';
 
-  const inner = (
-    <>
+  return (
+    <button type="button" className="quest-row" onClick={() => onSelect(q)}>
       <div className="quest-num">{num}.</div>
       <div className="quest-name">
         {q.name}
@@ -94,13 +95,7 @@ function QuestRow({ q, i }) {
       </div>
       <div className="quest-stack">{stackArr.map(t => <span key={t} className="quest-tag">{t}</span>)}</div>
       <div className="quest-arrow">→</div>
-    </>
-  );
-
-  return hasLink ? (
-    <a href={q.link} target="_blank" rel="noopener" className="quest-row">{inner}</a>
-  ) : (
-    <div className="quest-row quest-row--no-link">{inner}</div>
+    </button>
   );
 }
 

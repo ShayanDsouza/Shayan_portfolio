@@ -49,7 +49,7 @@ function HUD() {
 }
 
 function HudF1Mini() {
-  const f1 = window.useF1State ? window.useF1State() : null;
+  const f1 = window.useF1State();
   if (!f1 || f1.mode === 'load') return null;
 
   const isLive = f1.mode === 'live';

@@ -2,6 +2,8 @@
 // Serves POST requests with { prompt, duration } and returns binary MP3 audio
 
 const API_KEY = process.env.ELEVENLABS_API_KEY;
+const SHARED_SECRET = process.env.GENERATE_SOUND_SHARED_SECRET;
+const MAX_DURATION_SECONDS = 30;
 
 module.exports = async function handler(req, res) {
   // Only allow POST
@@ -17,13 +19,29 @@ module.exports = async function handler(req, res) {
   }
 
   try {
-    const { prompt, duration } = req.body;
+    if (SHARED_SECRET) {
+      const providedSecret = Array.isArray(req.headers['x-shared-secret'])
+        ? req.headers['x-shared-secret'][0]
+        : req.headers['x-shared-secret'];
+
+      if (providedSecret !== SHARED_SECRET) {
+        return res.status(401).json({ ok: false, error: 'Unauthorized' });
+      }
+    }
+
+    const { prompt, duration } = req.body || {};
 
     if (!prompt?.trim()) {
       return res.status(400).json({ ok: false, error: 'Prompt is required' });
     }
 
-    const durationSeconds = duration ? parseFloat(duration) : undefined;
+    let durationSeconds;
+    if (duration !== undefined && duration !== null && duration !== '') {
+      durationSeconds = Number.parseFloat(duration);
+      if (!Number.isFinite(durationSeconds) || durationSeconds <= 0 || durationSeconds > MAX_DURATION_SECONDS) {
+        return res.status(400).json({ ok: false, error: `Duration must be between 0 and ${MAX_DURATION_SECONDS} seconds` });
+      }
+    }
 
     // Contact ElevenLabs Text-to-Sound-Effects API
     const response = await fetch('https://api.elevenlabs.io/v1/sound-generation', {

@@ -6,6 +6,7 @@
     { "src": "login/index.html", "use": "@vercel/static" },
     { "src": "cms/index.html", "use": "@vercel/static" },
     { "src": "js/**", "use": "@vercel/static" },
+    { "src": "sounds/**", "use": "@vercel/static" },
     { "src": "styles/**", "use": "@vercel/static" }
   ],
   "routes": [

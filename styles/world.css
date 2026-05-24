@@ -1378,6 +1378,11 @@ img { max-width: 100%; }
   text-decoration: none;
   color: inherit;
   position: relative;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  text-align: left;
 }
 .quest-row::before {
   content: '';

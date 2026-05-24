@@ -151,7 +151,7 @@ function F1Cell() {
     const isTesting = urlParams.get('f1test') === 'live';
     
     if (isTesting) {
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         if (!alive) return;
         setSchedule({
           raceName: 'Simulation Grand Prix',
@@ -163,7 +163,10 @@ function F1Cell() {
         });
         setF1State({ raceName: 'Simulation Grand Prix' });
       }, 500);
-      return;
+      return () => {
+        alive = false;
+        clearTimeout(timer);
+      };
     }
 
     (async () => {
