@@ -57,6 +57,9 @@ function Contact() {
       const data = await res.json();
       if (data.ok) {
         setSent(true);
+        if (window.soundManager) {
+          window.soundManager.play('beacon_ignite');
+        }
       } else {
         setErrors({ form: data.error || 'Something went wrong. Try the direct email link.' });
       }
@@ -99,7 +102,10 @@ function Contact() {
             <div className="dialog-choices-label">— CALLS FOR AID —</div>
             <div className="dialog-choices">
               {[['hire', 'A', 'Hire me — internship / contract'], ['project', 'B', 'Project quote — freelance build'], ['chat', 'X', 'Just chat — say hi, no agenda'], ['f1', 'Y', 'F1 takes — exchange opinions']].map(([id, key, text]) => (
-                <button key={id} className={'dialog-choice' + (choice === id ? ' active' : '')} onClick={() => setChoice(id)}>
+                <button key={id} className={'dialog-choice' + (choice === id ? ' active' : '')} onClick={() => {
+                  setChoice(id);
+                  if (window.soundManager) window.soundManager.play('stone_hover');
+                }}>
                   <span className="key">{key}</span><span className="text">{text}</span>
                 </button>
               ))}

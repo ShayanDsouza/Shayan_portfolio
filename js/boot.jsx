@@ -5,6 +5,11 @@ function BootScreen({ onStart }) {
   const [progress, setProgress] = React.useState(0);
 
   React.useEffect(() => {
+    // Prime the sound manager for BGM auto-play
+    if (window.soundManager) {
+      window.soundManager.prime();
+    }
+
     const i = setInterval(() => setProgress(p => Math.min(100, p + Math.random() * 12)), 180);
     const handler = (e) => {
       if (e.key === 'Enter' || e.key === ' ') start();
@@ -14,6 +19,10 @@ function BootScreen({ onStart }) {
   }, []);
 
   function start() {
+    if (window.soundManager) {
+      window.soundManager.prime();
+      window.soundManager.play('sword_draw');
+    }
     setExiting(true);
     setTimeout(() => onStart(), 700);
   }

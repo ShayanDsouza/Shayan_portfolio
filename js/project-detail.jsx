@@ -191,12 +191,18 @@ function ProjectDetail({ quest, onClose }) {
   }, []);
 
   React.useEffect(() => {
+    if (window.soundManager) {
+      window.soundManager.play('parchment_open');
+    }
     const onKey = e => { if (e.key === 'Escape') onClose(); };
     window.addEventListener('keydown', onKey);
     document.body.style.overflow = 'hidden';
     return () => {
       window.removeEventListener('keydown', onKey);
       document.body.style.overflow = '';
+      if (window.soundManager) {
+        window.soundManager.play('parchment_close');
+      }
     };
   }, [onClose]);
 

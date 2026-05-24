@@ -20,8 +20,7 @@ const FILTERS = [
 
 function Projects() {
   const ref = React.useRef(null);
-  const [filter, setFilter]             = React.useState('all');
-  const [selectedQuest, setSelectedQuest] = React.useState(null);
+  const [filter, setFilter] = React.useState('all');
 
   React.useEffect(() => {
     const obs = new IntersectionObserver(([e]) => {
@@ -39,10 +38,6 @@ function Projects() {
 
   return (
     <>
-      {selectedQuest && (
-        <ProjectDetail quest={selectedQuest} onClose={() => setSelectedQuest(null)} />
-      )}
-
       <section className="world-projects" id="projects" ref={ref}>
         <div className="witcher-container">
           <div className="witcher-header">
@@ -72,7 +67,7 @@ function Projects() {
 
           <div className="quest-list">
             {quests.map((q, i) => (
-              <QuestRow key={q.name} q={q} i={i} onOpen={setSelectedQuest} />
+              <QuestRow key={q.name} q={q} i={i} />
             ))}
           </div>
 
@@ -85,18 +80,13 @@ function Projects() {
   );
 }
 
-function QuestRow({ q, i, onOpen }) {
+function QuestRow({ q, i }) {
   const num      = ['I','II','III','IV','V','VI','VII','VIII','IX','X'][i] || (i + 1);
   const stackArr = Array.isArray(q.stack) ? q.stack : (q.stack || '').split(',').map(s => s.trim()).filter(Boolean);
+  const hasLink  = q.link && q.link !== '#';
 
-  return (
-    <div
-      className="quest-row"
-      role="button"
-      tabIndex={0}
-      onClick={() => onOpen(q)}
-      onKeyDown={e => (e.key === 'Enter' || e.key === ' ') && onOpen(q)}
-    >
+  const inner = (
+    <>
       <div className="quest-num">{num}.</div>
       <div className="quest-name">
         {q.name}
@@ -104,7 +94,13 @@ function QuestRow({ q, i, onOpen }) {
       </div>
       <div className="quest-stack">{stackArr.map(t => <span key={t} className="quest-tag">{t}</span>)}</div>
       <div className="quest-arrow">→</div>
-    </div>
+    </>
+  );
+
+  return hasLink ? (
+    <a href={q.link} target="_blank" rel="noopener" className="quest-row">{inner}</a>
+  ) : (
+    <div className="quest-row quest-row--no-link">{inner}</div>
   );
 }
 
