@@ -8,9 +8,9 @@
   const BIOME_AMBIENTS = {
     BOOT:     'ambient-bg',
     HERO:     'ambient-bg',
-    ABOUT:    'ambient_about',
-    PROJECTS: 'ambient_projects',
-    CONTACT:  'ambient_contact'
+    ABOUT:    'ambient-bg',
+    PROJECTS: 'ambient-bg',
+    CONTACT:  'ambient-bg'
   };
 
   let activeAmbientId = null;

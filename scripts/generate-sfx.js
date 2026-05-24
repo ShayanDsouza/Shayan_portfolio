@@ -162,7 +162,7 @@ async function generateBGM() {
   }
   
   console.log(`\n🎼 Generating starting screen background music \x1b[33mambient-bg.mp3\x1b[0m using ElevenLabs Music API...`);
-  const bgmPrompt = 'An atmospheric, slow, medieval acoustic lute and flute theme, looping background music for a fantasy RPG game title screen, mystical and peaceful';
+  const bgmPrompt = 'A chaotic, sparse, melancholic acoustic guitar tremolo melody in the style of The Last of Us and Red Dead 2, backed by a slow dusty lo-fi hip-hop drum beat, deep warm bass, and a gentle, weeping 8-bit chiptune whistle lead. Atmospheric, emotional, instrumental only.';
   console.log(`        Prompt: "${bgmPrompt}"`);
   
   try {
